@@ -72,11 +72,11 @@ if __name__ == "__main__":
             Searching.search(indexes, user_output_results)
         elif user_command == '2':
             if user_ranking_models['okapi']:
-                print(Fore.BLUE + "Modello di ranking cambiato da OKAPI BM25F a FREQUENCY!")
+                print(Style.BRIGHT+Fore.BLUE + "Modello di ranking cambiato da OKAPI BM25F a FREQUENCY!\n")
                 user_ranking_models['okapi'] = False
                 user_ranking_models['frequency'] = True
             else:
-                print(Fore.BLUE + "Modello di ranking cambiato da FREQUENCY ad OKAPI BM25F!")
+                print(Style.BRIGHT+Fore.BLUE + "Modello di ranking cambiato da FREQUENCY ad OKAPI BM25F!\n")
                 user_ranking_models['frequency'] = False
                 user_ranking_models['okapi'] = True
         elif user_command == '3':
