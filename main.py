@@ -68,8 +68,7 @@ if __name__ == "__main__":
         print()
 
         if user_command == '1':
-            #print(Fore.RED+"Lavori in corso...")
-            Searching.search(indexes, user_output_results)
+            Searching.Searcher(indexes, user_output_results).search()
         elif user_command == '2':
             if user_ranking_models['okapi']:
                 print(Style.BRIGHT+Fore.BLUE + "Modello di ranking cambiato da OKAPI BM25F a FREQUENCY!\n")

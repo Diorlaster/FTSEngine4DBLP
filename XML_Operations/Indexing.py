@@ -13,7 +13,7 @@ from whoosh.fields import Schema, STORED, TEXT
 from whoosh.index import create_in
 
 
-class Index():
+class Index:
     indexes_path = 'Indexes/'
     publications_index_path = 'Indexes/PublicationsIndex'
     venues_index_path = 'Indexes/VenuesIndex'
