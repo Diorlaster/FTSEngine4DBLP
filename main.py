@@ -2,11 +2,13 @@ from colorama import init
 from colorama import Fore, Back, Style
 from XML_Operations import Indexing
 from Search_Operations import Searching
+
 user_command = None;
 user_output_results = 3
 user_ranking_models = {'frequency': False,
                        'okapi': True,
                        }
+user_warnings = True
 
 def faqs():
     while True:
@@ -61,14 +63,18 @@ if __name__ == "__main__":
         else:
             print(Fore.BLUE+" OKAPI BM25F | "+Style.BRIGHT+Fore.WHITE+"FREQUENCY"+Style.RESET_ALL+Fore.BLUE+" ]")
         print(Fore.BLUE+"3 > Imposta numero di risultati  [ "+Style.BRIGHT+Fore.WHITE+str(user_output_results)+Style.RESET_ALL+Fore.BLUE+" ]")
-        print(Fore.BLUE+"4 > FAQ")
-        print(Fore.BLUE+"5 > Esci")
+        if user_warnings:
+            print(Fore.BLUE+"4 > Cambia preferenza warnings   [ "+Style.BRIGHT+Fore.WHITE+"MOSTRA"+Style.NORMAL+Fore.BLUE+" | NASCONDI ]")
+        else :
+            print(Fore.BLUE+"4 > Cambia preferenza warnings   [ MOSTRA | "+ Style.BRIGHT + Fore.WHITE + "NASCONDI"+ Style.RESET_ALL+Fore.BLUE+" ]")
+        print(Fore.BLUE+"5 > FAQ")
+        print(Fore.BLUE+"6 > Esci")
         print()
         user_command = input(Fore.YELLOW+">>> ")
         print()
 
         if user_command == '1':
-            Searching.Searcher(indexes, user_output_results).search()
+            Searching.Searcher(indexes, user_output_results, user_warnings).search()
         elif user_command == '2':
             if user_ranking_models['okapi']:
                 print(Style.BRIGHT+Fore.BLUE + "Modello di ranking cambiato da OKAPI BM25F a FREQUENCY!\n")
@@ -86,8 +92,14 @@ if __name__ == "__main__":
                 except ValueError:
                     print(Fore.RED+"Non è un numero valido...riprova! ", end="")
         elif user_command == '4':
-            faqs()
+            user_warnings = not user_warnings
+            if user_warnings:
+                print(Style.BRIGHT + Fore.BLUE + "Adesso eventuali warnings verranno mostrati!\n")
+            else:
+                print(Style.BRIGHT + Fore.BLUE + "Adesso eventuali warnings verranno nascosti!\n")
         elif user_command == '5':
+            faqs()
+        elif user_command == '6':
             print(Style.BRIGHT+Fore.BLUE+"Torna presto!")
             print()
             break;

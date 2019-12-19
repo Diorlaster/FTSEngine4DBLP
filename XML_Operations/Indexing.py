@@ -28,8 +28,8 @@ class Index:
             publications_number = str(self.publications_index.doc_count())
             venues_number = str(self.venues_index.doc_count())
             print(Style.BRIGHT+Fore.BLUE + "Indici caricati! Sono state trovate: ")
-            print("> "+Fore.WHITE + publications_number + Fore.BLUE + " publications")
-            print("> "+Fore.WHITE + venues_number + Fore.BLUE + " venues")
+            print(Fore.BLUE+"> "+Fore.WHITE + publications_number + Fore.BLUE + " publications")
+            print(Fore.BLUE+"> "+Fore.WHITE + venues_number + Fore.BLUE + " venues")
             print()
         except:
             print(Fore.RED + "Non sono riuscito a caricare gli indici... ")
