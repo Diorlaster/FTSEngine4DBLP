@@ -1,6 +1,11 @@
 from colorama import Fore, Back, Style
+from whoosh import collectors
 from whoosh.qparser import QueryParser, MultifieldParser
 import time
+
+from whoosh.scoring import Frequency, TF_IDF
+from whoosh.searching import Hit
+
 
 class Searcher:
     user_output_results = None;
@@ -49,7 +54,7 @@ class Searcher:
         print(Fore.BLUE + '\n...la ricerca potrebbe richiedere un po\' di tempo...\n')
         start_time = time.time()
 
-
+        """
         # RICERCA INDICE PUBLICATIONS
         with self.publications_index.searcher() as publications_searcher:
             qp = MultifieldParser(["author", "title", "year", "pubtype"], schema=self.publications_index.schema)
@@ -63,7 +68,35 @@ class Searcher:
                     result_to_store.update({field[0]:field[1]})
                 result_to_store.update({'score':result.score})
                 self.publications_results.append(result_to_store)
+        """
 
+
+        # RICERCA INDICE PUBLICATIONS
+        with self.publications_index.searcher(weighting=Frequency) as publications_searcher:
+
+            qp_title = MultifieldParser(["title","author","year"], schema=self.publications_index.schema)
+            q = qp_title.parse(user_p_query)
+            results_title = publications_searcher.search(q, limit=None)
+
+            #qp_author = QueryParser("author", schema=self.publications_index.schema)
+            #q = qp_author.parse(user_p_query)
+            #results_author = publications_searcher.search(q, limit=None)
+
+            #results.upgrade_and_extend(results_title)
+            #results_title.upgrade_and_extend(results_author)
+            # ciò che segue è necessario per il seguente motivo:
+            # https://stackoverflow.com/questions/19477319/whoosh-accessing-search-page-result-items-throws-readerclosed-exception
+            max = 0
+            for result in results_title:
+                if result.score > max :
+                    max = result.score
+                result_to_store = {}
+                for field in result.items():
+                    result_to_store.update({field[0]: field[1]})
+                result_to_store.update({'score': result.score})
+                self.publications_results.append(result_to_store)
+        print(">>>>>"+str(max))
+        self.publications_results=sorted(self.publications_results, key=lambda i: i['score'], reverse=True)
 
         # RICERCA INDICE VENUES
         with self.venues_index.searcher() as venues_searcher:
@@ -98,6 +131,7 @@ class Searcher:
         for c in range(0, len(user_query)):
             if user_query[c] == "\"":
                 phrase_count = phrase_count + 1
+                #TODO specificare nelle FAQ che dopo una phrase individuata, la parola successiva viene automaticamente staccare e assegnata ad una nuova query
                 if phrase_count == 2:
                     user_splitted_query.append(user_query[query_start:c + 1])
                     query_start = c + 1
@@ -157,9 +191,9 @@ class Searcher:
                             query_element = ('venue', True)
                         else:
                             query_element = self.get_element(query_analysis[0])
-                            if not query_element[1]:
+                            #if not query_element[1]:
                                 # non ho trovato l'elemento.. potrebbe essere dunque un field .. controllo
-                                query_field = self.get_field(query_analysis[0])
+                        query_field = self.get_field(query_analysis[0])
                         query_text = query_analysis[-1]
                 elif "." in query:
                     query_analysis = query.partition(".")
@@ -224,8 +258,11 @@ class Searcher:
             else:
                 #print(Fore.CYAN + "--- ELEMENT QUERY SENZA FIELD SPECIFICO ---")
                 return query_analysis, True
+        elif query_analysis in self.publications_fields or query_analysis in self.venues_fields:
+            return "*", False
         #print(Fore.CYAN + "--- ELEMENTO NON VALIDO---")
-        return query_analysis, False
+        else:
+            return query_analysis, False
 
     def get_field(self, query_analysis):
         if query_analysis in self.publications_fields or query_analysis in self.venues_fields:
@@ -255,6 +292,8 @@ class Searcher:
                     else: print("\t" + Style.BRIGHT + Fore.BLACK + "N/D\n")
                     print(Style.BRIGHT + Fore.MAGENTA + "Title")
                     print("\t" + Style.BRIGHT + Fore.BLACK + result['title'])
+                    print(Style.BRIGHT + Fore.MAGENTA + "Year")
+                    print("\t" + Style.BRIGHT + Fore.BLACK + result['year'])
                     print(Style.BRIGHT + Fore.MAGENTA + "Pub-Type")
                     print("\t" + Style.BRIGHT + Fore.BLACK + result['pubtype'] + "\n")
                     results_shown += 1
