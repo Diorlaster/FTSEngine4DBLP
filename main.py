@@ -5,8 +5,8 @@ from Search_Operations import Searching
 
 user_command = None;
 user_output_results = 3
-user_ranking_models = {'frequency': False,
-                       'okapi': True,
+user_ranking_models = {'Frequency': False,
+                        'BM25F': True,
                        }
 user_warnings = True
 
@@ -16,7 +16,8 @@ def faqs():
         print(Fore.BLUE+"1 > Cos'è FTSE-4-DBLP?")
         print(Fore.BLUE+"2 > Come funziona la ricerca?")
         print(Fore.BLUE+"3 > Cosa cambia tra i due modelli di ranking?")
-        print(Fore.BLUE+"4 > Torna al menu principale")
+        print(Fore.BLUE+"3 > A cosa servono i warnings?")
+        print(Fore.BLUE+"5 > Torna al menu principale")
         print()
         user_command = input(Fore.YELLOW + ">>> ")
         print()
@@ -31,6 +32,9 @@ def faqs():
             print(Fore.RED+"Lavori in corso...")
             print()
         elif user_command == '4':
+            print(Fore.RED+"Lavori in corso...")
+            print()
+        elif user_command == '5':
             break
         else:
             print(Fore.RED+"Non hai selezionato un comando valido...riprova!")
@@ -58,7 +62,7 @@ if __name__ == "__main__":
         print(Back.BLUE+Fore.WHITE+" MENU "+Style.RESET_ALL+Style.BRIGHT+Fore.BLUE+" Che cosa posso fare?")
         print(Fore.BLUE+"1 > Cerca")
         print(Fore.BLUE+"2 > Cambia modello di ranking    [", end="")
-        if user_ranking_models['okapi']:
+        if user_ranking_models['BM25F']:
             print(Style.BRIGHT+Fore.WHITE+" OKAPI BM25F "+Style.RESET_ALL+Fore.BLUE+"| FREQUENCY ]")
         else:
             print(Fore.BLUE+" OKAPI BM25F | "+Style.BRIGHT+Fore.WHITE+"FREQUENCY"+Style.RESET_ALL+Fore.BLUE+" ]")
@@ -74,16 +78,19 @@ if __name__ == "__main__":
         print()
 
         if user_command == '1':
-            Searching.Searcher(indexes, user_output_results, user_warnings).search()
+            if user_ranking_models['BM25F']:
+                Searching.Searcher(indexes, user_output_results, user_warnings, "BM25F").search()
+            elif user_ranking_models['Frequency']:
+                Searching.Searcher(indexes, user_output_results, user_warnings, "Frequency").search()
         elif user_command == '2':
-            if user_ranking_models['okapi']:
+            if user_ranking_models['BM25F']:
                 print(Style.BRIGHT+Fore.BLUE + "Modello di ranking cambiato da OKAPI BM25F a FREQUENCY!\n")
-                user_ranking_models['okapi'] = False
-                user_ranking_models['frequency'] = True
+                user_ranking_models['BM25F'] = False
+                user_ranking_models['Frequency'] = True
             else:
                 print(Style.BRIGHT+Fore.BLUE + "Modello di ranking cambiato da FREQUENCY ad OKAPI BM25F!\n")
-                user_ranking_models['frequency'] = False
-                user_ranking_models['okapi'] = True
+                user_ranking_models['Frequency'] = False
+                user_ranking_models['BM25F'] = True
         elif user_command == '3':
             while True:
                 try:

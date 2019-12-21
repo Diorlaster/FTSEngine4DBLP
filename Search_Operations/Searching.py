@@ -3,8 +3,7 @@ from whoosh import collectors
 from whoosh.qparser import QueryParser, MultifieldParser
 import time
 
-from whoosh.scoring import Frequency, TF_IDF
-from whoosh.searching import Hit
+from whoosh.scoring import Frequency, BM25F  # NON CANCELLARE, VENGONO USATI VIA EVAL()
 
 
 class Searcher:
@@ -18,11 +17,12 @@ class Searcher:
     venues_results = []
     user_warnings = None
     query_warnings = {}
+    ranking = None
 
     # TODO attualmente sto usando OKAPI BM25 e stampo i risultati in modo separato senza combinare il ranking dei due insiemi
     # TODO PROSSIMO STEP: verificare traduzione
 
-    def __init__(self, indexes, user_output_results, user_warnings):
+    def __init__(self, indexes, user_output_results, user_warnings, ranking):
         self.publications_index = indexes.publications_index
         self.venues_index = indexes.venues_index
         self.user_output_results = user_output_results
@@ -30,6 +30,7 @@ class Searcher:
         self.venues_results = []
         self.user_warnings = user_warnings
         self.query_warnings = {}
+        self.ranking = ranking
 
     def search(self):
         print(Back.BLUE + Fore.BLACK + " MENU > CERCA ")
@@ -54,9 +55,8 @@ class Searcher:
         print(Fore.BLUE + '\n...la ricerca potrebbe richiedere un po\' di tempo...\n')
         start_time = time.time()
 
-        """
         # RICERCA INDICE PUBLICATIONS
-        with self.publications_index.searcher() as publications_searcher:
+        with self.publications_index.searcher(weighting=eval(self.ranking)) as publications_searcher:
             qp = MultifieldParser(["author", "title", "year", "pubtype"], schema=self.publications_index.schema)
             q = qp.parse(user_p_query)
             results = publications_searcher.search(q, limit=None)
@@ -68,38 +68,9 @@ class Searcher:
                     result_to_store.update({field[0]:field[1]})
                 result_to_store.update({'score':result.score})
                 self.publications_results.append(result_to_store)
-        """
-
-
-        # RICERCA INDICE PUBLICATIONS
-        with self.publications_index.searcher(weighting=Frequency) as publications_searcher:
-
-            qp_title = MultifieldParser(["title","author","year"], schema=self.publications_index.schema)
-            q = qp_title.parse(user_p_query)
-            results_title = publications_searcher.search(q, limit=None)
-
-            #qp_author = QueryParser("author", schema=self.publications_index.schema)
-            #q = qp_author.parse(user_p_query)
-            #results_author = publications_searcher.search(q, limit=None)
-
-            #results.upgrade_and_extend(results_title)
-            #results_title.upgrade_and_extend(results_author)
-            # ciò che segue è necessario per il seguente motivo:
-            # https://stackoverflow.com/questions/19477319/whoosh-accessing-search-page-result-items-throws-readerclosed-exception
-            max = 0
-            for result in results_title:
-                if result.score > max :
-                    max = result.score
-                result_to_store = {}
-                for field in result.items():
-                    result_to_store.update({field[0]: field[1]})
-                result_to_store.update({'score': result.score})
-                self.publications_results.append(result_to_store)
-        print(">>>>>"+str(max))
-        self.publications_results=sorted(self.publications_results, key=lambda i: i['score'], reverse=True)
 
         # RICERCA INDICE VENUES
-        with self.venues_index.searcher() as venues_searcher:
+        with self.venues_index.searcher(weighting=eval(self.ranking)) as venues_searcher:
             qp = MultifieldParser(['title', 'publisher'], schema=self.venues_index.schema)
             q = qp.parse(user_v_query)
             results = venues_searcher.search(q, limit=None)
