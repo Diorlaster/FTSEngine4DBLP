@@ -4,7 +4,6 @@ import time
 
 from whoosh.scoring import Frequency, BM25F  # NON CANCELLARE, VENGONO USATI VIA EVAL()
 
-
 class Searcher:
     user_output_results = None;
     publications_elements = ['publication', 'article', 'incollection', 'inproceedings', 'phdthesis', 'mastersthesis']
@@ -17,9 +16,6 @@ class Searcher:
     user_warnings = None
     query_warnings = {}
     ranking = None
-
-    # TODO attualmente stampo i risultati in modo separato senza combinare il ranking dei due insiemi
-    # TODO PROSSIMO STEP: threshold
 
     def __init__(self, indexes, user_output_results, user_warnings, ranking):
         self.publications_index = indexes.publications_index
@@ -82,7 +78,6 @@ class Searcher:
                 result_to_store.update({'score': result.score})
                 self.venues_results.append(result_to_store)
 
-        # TODO applicare Threshold sulla lista delle pubs e quella delle venues
         #print(Back.YELLOW + Style.BRIGHT + Fore.BLACK + "\tRISULTATI PUBLICATIONS\t" + Style.RESET_ALL + "\n")
         #self.print_results(self.publications_results)
         #print(Back.YELLOW + Style.BRIGHT + Fore.BLACK + "\tRISULTATI VENUES\t" + Style.RESET_ALL + "\n")
@@ -95,20 +90,6 @@ class Searcher:
         print(Fore.BLUE + 'La ricerca è stata completata in', round((end_time - start_time)), Fore.BLUE + 'secondi!\n')
 
         #self.print_results(lista)
-        """
-        print(Fore.BLUE+str(lista))
-
-        i = 0
-        for element in lista:
-            if i < 5:
-                for e in element.items():
-                    print(e)
-                print()
-                print()
-                i = i+1
-            else:
-                break
-        """
 
     def get_queries(self, user_query):
         # ad ogni posizione di user_splitted_query avrò una query. Tutte andranno messe in OR.
@@ -323,11 +304,6 @@ class Searcher:
             v_trovato = False
             #cerco se la crossref è nelle venues
             for ven in venues:
-                """
-                print(pubs[i]["crossref"][:-2])
-                print(ven["key"])
-                print("----------------------") 
-                """
                 if "crossref" in pubs[i] and pubs[i]["crossref"] != "" and pubs[i]["crossref"][:-1] == ven["key"]:
                     # ho trovato una corrispondenza. Prendo lo score della venue, lo sommo allo score della pub i-esima
                     pub_to_ven.update({ "p":pubs[i] ,  "v":ven ,  "score_comb":pubs[i]["score"]+ven["score"]} )
@@ -353,9 +329,6 @@ class Searcher:
 
             lista.append(ven_to_pub)
 
-            # TODO: devo ordinare
-            # TODO: devo controllare se il primo è > della soglia
-
             lista = sorted(lista, key = lambda i: i['score_comb'], reverse=True)
 
             if lista[0]['score_comb'] > soglia:
@@ -368,7 +341,7 @@ class Searcher:
 
     def print_ts(self, lista):
 
-        self.user_output_results = 15
+        self.user_output_results = 3
 
         if len(lista) < self.user_output_results:
             self.user_output_results = len(lista)
@@ -376,98 +349,37 @@ class Searcher:
         if not lista:
             print(Style.BRIGHT + Fore.MAGENTA + "Nessun risultato trovato\n")
 
-        #print(Fore.BLUE+str(lista))
         stampate = 0
-        """
-        i = 0
-        for element in lista:
-            if i < 5:
-                for e in element.items():
-                    print(e)
-                print()
-                print()
-                i = i + 1
-            else:
-                break
-        """
+
+        # rimozione duplicati
         lista = [i for n, i in enumerate(lista) if i not in lista[n + 1:]]
 
+        if len(lista) > self.user_output_results:
+            lista = lista[:self.user_output_results]
+
         print()
+        i=1
         while len(lista) > 0:
-            i=0
-            venue_i = lista[i]["v"]
-            pub_i = lista[i]["p"]
-            punti = venue_i["score"]
-            print(punti)
+            venue_i = lista[0]["v"]
             if venue_i != None:
-                d = []
+                punti = venue_i["score"]
+                print(Back.MAGENTA+Fore.BLACK + "\tRisultato #"+str(i)+"\t")
+                print(Fore.MAGENTA + "\n\tVENUE")
+                print("\n\t\t"+Style.BRIGHT+"Title: "+Style.NORMAL+str(venue_i["title"][:-1]))
                 for j in range(len(lista)):
                     pub_j = lista[j]["p"]
-                    if pub_j != None and "crossref" in pub_j:
-                        if pub_j["crossref"][:-1] == venue_i["key"]:
-                            d.append(pub_j)
-                            punti = punti + pub_j["score"]
-                            print(pub_j["score"])
-                            #del lista[j]
-                            #j = 0
-                print(Fore.YELLOW + "VENUE --> " + str(venue_i["title"]) + "TOTAL SCORE: " + str(punti))
-                for p in d:
-                    print(Fore.GREEN + "PUB --> " + str(p["title"]))
-                    print("\tAuthors: ")
-                    authors = p["author"].split("\n")
-                    for author in authors:
-                        print("\t" + author)
+                    if pub_j != None and "crossref" in pub_j and pub_j["crossref"][:-1] == venue_i["key"]:
+                        punti = punti + pub_j["score"]
+                        print(Fore.MAGENTA + "\tPUBLICATION #"+str(j+1))
+                        print(Style.BRIGHT + "\n\t\tTitle: " + Style.NORMAL + str(pub_j["title"][:-1]))
+                        print(Style.BRIGHT+"\t\tAuthors: ", end="")
+                        authors = pub_j["author"].split("\n")
+                        print(*(author for author in authors if author != ""), sep=", ", end="\n\n")
 
-            """                
-            elif pub_i != None:
-                print(Fore.GREEN+"PUB --> " + str(pub_i["title"])+"TOTAL SCORE: "+str(lista[i]["score_comb"]))
-                print("\tAuthors: ")
-                authors = pub_i["author"].split("\n")
-                for author in authors:
-                    print("\t" + author)
-            """
             lista[:] = [d for d in lista if d.get('v') != venue_i]
-            print("-------------------------------------------------------------------\n")
-            #del lista[i]
-            #i = 0
+            i = i+1
 
-        """
-        for element_v in lista:
-            if i < self.user_output_results and element_v["v"] != None:
-                for element_p in lista:
-                    if element["p"] != None:
-                        if element["v"]["key"] == element_p["p"]["crossref"]:
-        """
 
-                #for e in element.items():
-                    #print(e[1]["author"])
-                    #print(e)
-        """ 
-                i = i + 1
-
-            else:
-                break
-        """
-        """
-        print()
-        i = 0
-        for element in lista:
-            if i < self.user_output_results:
-                for e in element.items():
-                    print(e)
-                print()
-                print()
-                i = i + 1
-            else:
-                break
-
-        for i in range(len(lista)):
-            venue_i = lista[i]["v"]
-            occorrenze = 0
-            if venue_i != None:
-                for j in range(len(lista)):
-                    venue_j = lista[j]["v"]
-                    if venue_j != None and venue_j["key"] == venue_i["key"]:
-                        occorrenze = occorrenze + 1
-                print(">>>>>> "+str(occorrenze))
-        """
+# TODO: evitare threshold se uno dei due insiemi è vuoto
+# TODO: gestire/separare la stampa delle publications ( funzione? ) in modo da stamparle nel caso in cui non ci sia una venue
+# TODO: verificare gli score e il comportamento alla luce del punto precedente
