@@ -9,6 +9,7 @@ user_ranking_models = {'Frequency': False,
                         'BM25F': True,
                        }
 user_warnings = True
+user_score = True
 
 def faqs():
     while True:
@@ -71,17 +72,21 @@ if __name__ == "__main__":
             print(Fore.BLUE+"4 > Cambia preferenza warnings   [ "+Style.BRIGHT+Fore.WHITE+"MOSTRA"+Style.NORMAL+Fore.BLUE+" | NASCONDI ]")
         else :
             print(Fore.BLUE+"4 > Cambia preferenza warnings   [ MOSTRA | "+ Style.BRIGHT + Fore.WHITE + "NASCONDI"+ Style.RESET_ALL+Fore.BLUE+" ]")
-        print(Fore.BLUE+"5 > FAQ")
-        print(Fore.BLUE+"6 > Esci")
+        if user_score:
+            print(Fore.BLUE+"5 > Cambia preferenza score      [ "+Style.BRIGHT+Fore.WHITE+"MOSTRA"+Style.NORMAL+Fore.BLUE+" | NASCONDI ]")
+        else :
+            print(Fore.BLUE+"5 > Cambia preferenza score      [ MOSTRA | "+ Style.BRIGHT + Fore.WHITE + "NASCONDI"+ Style.RESET_ALL+Fore.BLUE+" ]")
+        print(Fore.BLUE+"6 > FAQ")
+        print(Fore.BLUE+"7 > Esci")
         print()
         user_command = input(Fore.YELLOW+">>> ")
         print()
 
         if user_command == '1':
             if user_ranking_models['BM25F']:
-                Searching.Searcher(indexes, user_output_results, user_warnings, "BM25F").search()
+                Searching.Searcher(indexes, user_output_results, user_warnings, user_score, "BM25F").search()
             elif user_ranking_models['Frequency']:
-                Searching.Searcher(indexes, user_output_results, user_warnings, "Frequency").search()
+                Searching.Searcher(indexes, user_output_results, user_warnings, user_score, "Frequency").search()
         elif user_command == '2':
             if user_ranking_models['BM25F']:
                 print(Style.BRIGHT+Fore.BLUE + "Modello di ranking cambiato da OKAPI BM25F a FREQUENCY!\n")
@@ -105,8 +110,14 @@ if __name__ == "__main__":
             else:
                 print(Style.BRIGHT + Fore.BLUE + "Adesso eventuali warnings verranno nascosti!\n")
         elif user_command == '5':
-            faqs()
+            user_score = not user_score
+            if user_score:
+                print(Style.BRIGHT + Fore.BLUE + "Adesso gli score verrano mostrati!\n")
+            else:
+                print(Style.BRIGHT + Fore.BLUE + "Adesso gli score verranno nascosti!\n")
         elif user_command == '6':
+            faqs()
+        elif user_command == '7':
             print(Style.BRIGHT+Fore.BLUE+"Torna presto!")
             print()
             break;

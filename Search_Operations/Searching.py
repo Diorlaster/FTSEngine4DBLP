@@ -14,16 +14,18 @@ class Searcher:
     venues_index = None
     venues_results = []
     user_warnings = None
+    user_score = None
     query_warnings = {}
     ranking = None
 
-    def __init__(self, indexes, user_output_results, user_warnings, ranking):
+    def __init__(self, indexes, user_output_results, user_warnings, user_score, ranking):
         self.publications_index = indexes.publications_index
         self.venues_index = indexes.venues_index
         self.user_output_results = user_output_results
         self.publications_results = []
         self.venues_results = []
         self.user_warnings = user_warnings
+        self.user_score = user_score
         self.query_warnings = {}
         self.ranking = ranking
 
@@ -83,8 +85,15 @@ class Searcher:
         #print(Back.YELLOW + Style.BRIGHT + Fore.BLACK + "\tRISULTATI VENUES\t" + Style.RESET_ALL + "\n")
         #self.print_results(self.venues_results)
 
-        lista = self.threshold(self.publications_results, self.venues_results)
-        self.print_ts(lista)
+        if len(self.publications_results) > 0 and len(self.venues_results) > 0:
+            lista = self.threshold(self.publications_results, self.venues_results)
+            self.print_ts(lista)
+        elif len(self.publications_results) <= 0 and len(self.venues_results) > 0:
+            self.print_results(self.venues_results)
+        elif len(self.publications_results) > 0 and len(self.venues_results) <= 0:
+            self.print_results(self.publications_results)
+        else:
+            print(Style.BRIGHT + Fore.MAGENTA + "Nessun risultato trovato\n")
 
         end_time = time.time()
         print(Fore.BLUE + 'La ricerca è stata completata in', round((end_time - start_time)), Fore.BLUE + 'secondi!\n')
@@ -255,27 +264,19 @@ class Searcher:
             results_shown = 0
             for result in results_set:
                 if results_shown < self.user_output_results:
-                    print(Back.MAGENTA + Style.BRIGHT + Fore.BLACK + "Risultato #" + str(results_shown + 1), end="\t")
-                    print(Style.BRIGHT + Fore.MAGENTA + "Score:\t" + Style.BRIGHT + Fore.BLACK + str(
-                        round(result['score'], 3)) + "\n")
-                    print(Style.BRIGHT + Fore.MAGENTA + "Authors")
+                    print(Back.MAGENTA + Style.BRIGHT + Fore.BLACK + "\tRisultato #" + str(results_shown + 1)+"\t", end="\t")
+                    if self.user_score:
+                        print(Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "Score:\t" + Style.BRIGHT + Fore.BLACK + str(
+                            round(result['score'], 3)), end="")
+                    print(Style.BRIGHT + Fore.BLACK + "\n\n\tTitle: " + Style.RESET_ALL + result['title'],end="")
+                    print(Style.BRIGHT + Fore.BLACK + "\tAuthors: ", end="")
                     if result['author']:
-                        authors = result['author'].split('\n')
-                        for author in authors:
-                            print("\t" + Style.BRIGHT + Fore.BLACK + author)
+                        authors = result["author"].split("\n")
+                        print(*(author for author in authors if author != ""), sep=", ", end="\n")
                     else:
-                        print("\t" + Style.BRIGHT + Fore.BLACK + "N/D\n")
-                    print(Style.BRIGHT + Fore.MAGENTA + "Title")
-                    print("\t" + Style.BRIGHT + Fore.BLACK + result['title'])
-                    print(Style.BRIGHT + Fore.MAGENTA + "Year")
-                    print("\t" + Style.BRIGHT + Fore.BLACK + result['year'])
-                    print(Style.BRIGHT + Fore.MAGENTA + "Pub-Type")
-                    print("\t" + Style.BRIGHT + Fore.BLACK + result['pubtype'] + "\n")
-                    if "crossref" in result and result["crossref"] != "":
-                        print(Style.BRIGHT + Fore.MAGENTA + "Crossref")
-                        print("\t" + Style.BRIGHT + Fore.BLACK + result['crossref'])
-                    print(Style.BRIGHT + Fore.MAGENTA + "Key")
-                    print("\t" + Style.BRIGHT + Fore.BLACK + result['key'] + "\n")
+                        print("N/D\n")
+                    print(Style.BRIGHT + Fore.BLACK + "\tYear: " + Style.RESET_ALL + result['year'],end="")
+                    print(Style.BRIGHT + Fore.BLACK + "\tPub-Type: " + Style.RESET_ALL + result['pubtype'] + "\n")
                     results_shown += 1
         else:
             print(Style.BRIGHT + Fore.MAGENTA + "Nessun risultato trovato\n")
@@ -341,45 +342,75 @@ class Searcher:
 
     def print_ts(self, lista):
 
-        self.user_output_results = 3
-
-        if len(lista) < self.user_output_results:
-            self.user_output_results = len(lista)
-
         if not lista:
             print(Style.BRIGHT + Fore.MAGENTA + "Nessun risultato trovato\n")
-
-        stampate = 0
+            return
 
         # rimozione duplicati
         lista = [i for n, i in enumerate(lista) if i not in lista[n + 1:]]
 
+        if len(lista) < self.user_output_results:
+            self.user_output_results = len(lista)
+
+        """
         if len(lista) > self.user_output_results:
-            lista = lista[:self.user_output_results]
+            lista = lista[:self.user_output_results] 
+        """
 
         print()
-        i=1
-        while len(lista) > 0:
+        i=0
+        while i < self.user_output_results and len(lista) > 0:
             venue_i = lista[0]["v"]
+            pub_i = lista[0]["p"]
             if venue_i != None:
                 punti = venue_i["score"]
-                print(Back.MAGENTA+Fore.BLACK + "\tRisultato #"+str(i)+"\t")
-                print(Fore.MAGENTA + "\n\tVENUE")
-                print("\n\t\t"+Style.BRIGHT+"Title: "+Style.NORMAL+str(venue_i["title"][:-1]))
                 for j in range(len(lista)):
                     pub_j = lista[j]["p"]
                     if pub_j != None and "crossref" in pub_j and pub_j["crossref"][:-1] == venue_i["key"]:
                         punti = punti + pub_j["score"]
-                        print(Fore.MAGENTA + "\tPUBLICATION #"+str(j+1))
-                        print(Style.BRIGHT + "\n\t\tTitle: " + Style.NORMAL + str(pub_j["title"][:-1]))
-                        print(Style.BRIGHT+"\t\tAuthors: ", end="")
+                print(Back.MAGENTA + Fore.BLACK + "\tRisultato #" + str(i+1) + "\t", end="\t")
+                if self.user_score:
+                    print(Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "Total Score: " + Style.BRIGHT + Fore.BLACK + str(
+                        round(punti, 3)), end="")
+                print(Style.BRIGHT + Fore.MAGENTA + "\n\n\tVENUE")
+                print("\t\t" + Style.BRIGHT + Fore.BLACK + "Title: " + Fore.RESET + str(venue_i["title"][:-1]))
+                print("\t\t" + Style.BRIGHT + Fore.BLACK + "Key: " + Fore.RESET + str(venue_i["key"]) + "\n")
+                for j in range(len(lista)):
+                    pub_j = lista[j]["p"]
+                    if pub_j != None and "crossref" in pub_j and pub_j["crossref"][:-1] == venue_i["key"]:
+                        punti = punti + pub_j["score"]
+                        print(Style.BRIGHT+ Fore.MAGENTA + "\tPUBLICATION #"+str(j+1))
+                        print( Style.BRIGHT + Fore.BLACK +"\t\tTitle: " + Style.RESET_ALL + str(pub_j["title"][:-1]))
+                        print("\t\t" + Style.BRIGHT + Fore.BLACK + "Crossref: " + Fore.RESET + str(
+                            pub_j["crossref"][:-1]))
+                        print( Style.BRIGHT + Fore.BLACK +"\t\tAuthors: ", end="")
                         authors = pub_j["author"].split("\n")
-                        print(*(author for author in authors if author != ""), sep=", ", end="\n\n")
+                        print(*(author for author in authors if author != ""), sep=", ")
+                        print(Style.BRIGHT + Fore.BLACK + "\t\tYear: " + Style.RESET_ALL + pub_j['year'], end="")
+                        print(Style.BRIGHT + Fore.BLACK + "\t\tPub-Type: " + Style.RESET_ALL + pub_j['pubtype'])
+                        print()
+                lista[:] = [d for d in lista if d.get('v') != venue_i]
+            elif pub_i != None:
+                print(Back.MAGENTA + Fore.BLACK + "\tRisultato #" + str(i + 1) + "\t", end="\t")
+                if self.user_score:
+                    print(Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "Total Score: " + Style.BRIGHT + Fore.BLACK + str(
+                        round(pub_i["score"], 3)), end="")
+                print(Style.BRIGHT + Fore.MAGENTA + "\n\n\tPUBLICATION")
+                print(Style.BRIGHT + Fore.BLACK + "\t\tTitle: " + Style.RESET_ALL + str(pub_i["title"][:-1]))
+                print("\t\t" + Style.BRIGHT + Fore.BLACK + "Crossref: " + Fore.RESET + str(
+                    pub_i["crossref"][:-1]))
+                print(Style.BRIGHT + Fore.BLACK + "\t\tAuthors: ", end="")
+                authors = pub_i["author"].split("\n")
+                print(*(author for author in authors if author != ""), sep=", ")
+                print(Style.BRIGHT + Fore.BLACK + "\t\tYear: " + Style.RESET_ALL + pub_i['year'], end="")
+                print(Style.BRIGHT + Fore.BLACK + "\t\tPub-Type: " + Style.RESET_ALL + pub_i['pubtype'])
+                print()
+                lista[:] = [d for d in lista if d.get('p') != pub_i]
 
-            lista[:] = [d for d in lista if d.get('v') != venue_i]
-            i = i+1
-
+            i = i + 1
 
 # TODO: evitare threshold se uno dei due insiemi è vuoto
 # TODO: gestire/separare la stampa delle publications ( funzione? ) in modo da stamparle nel caso in cui non ci sia una venue
 # TODO: verificare gli score e il comportamento alla luce del punto precedente
+
+# inproceedings.title:"Database Systems 2.0" inproceedings.title:"Structured Data Meets News" venue.title:"Proceedings of the VLDB 2019 PhD Workshop" venue:VLDB
