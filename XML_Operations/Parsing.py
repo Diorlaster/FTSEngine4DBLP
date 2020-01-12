@@ -1,5 +1,6 @@
 import xml.sax
 from colorama import Fore, Back, Style
+from XML_Operations import Indexing
 
 publications = ['article', 'incollection', 'inproceedings', 'phdthesis', 'mastersthesis']
 venues = ['book', 'proceedings']
@@ -64,7 +65,7 @@ class PublicationsHandler(xml.sax.ContentHandler):
 
         if self.isPublication:
             if self.__onGoingElement == "crossref":
-                self.crossref += str(content)
+                self.crossref += str(content).split('\n')[0]
             elif self.__onGoingElement == 'author':
                 self.author += str(content)
             elif self.__onGoingElement == "title":
@@ -84,17 +85,34 @@ class PublicationsHandler(xml.sax.ContentHandler):
         """Called when the parsing of the publication ends"""
 
         if self.tag == tag:
-            self.saxWriter.add_document(pubtype=self.tag,
-                                        key=self.key,
-                                        crossref=self.crossref,
-                                        author=self.author,
-                                        title=self.title,
-                                        year=self.year,
-                                        journal=self.journal,
-                                        volume=self.volume,
-                                        pages=self.pages,
-                                        url=self.url
-                                        )
+            if self.journal != '' and self.crossref == '':
+                if self.journal == "ware Engineering Notes":
+                    print("ciao")
+                if self.journal != '\n' and self.journal.split('\n')[0] not in Indexing.journals:
+                    Indexing.journals.append(self.journal.split('\n')[0])
+                self.saxWriter.add_document(pubtype=self.tag,
+                                            key=self.key,
+                                            crossref=self.journal.split('\n')[0],
+                                            author=self.author,
+                                            title=self.title,
+                                            year=self.year,
+                                            journal=self.journal,
+                                            volume=self.volume,
+                                            pages=self.pages,
+                                            url=self.url
+                                            )
+            else:
+                self.saxWriter.add_document(pubtype=self.tag,
+                                            key=self.key,
+                                            crossref=self.crossref,
+                                            author=self.author,
+                                            title=self.title,
+                                            year=self.year,
+                                            journal=self.journal,
+                                            volume=self.volume,
+                                            pages=self.pages,
+                                            url=self.url
+                                            )
             self.__reset_attributes()
 
     def endDocument(self):

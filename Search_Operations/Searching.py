@@ -264,19 +264,25 @@ class Searcher:
             results_shown = 0
             for result in results_set:
                 if results_shown < self.user_output_results:
-                    print(Back.MAGENTA + Style.BRIGHT + Fore.BLACK + "\tRisultato #" + str(results_shown + 1)+"\t", end="\t")
+                    print(Back.MAGENTA + Style.BRIGHT + Fore.BLACK + "\tResult #" + str(results_shown + 1)+"\t", end="\t")
                     if self.user_score:
                         print(Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "Score:\t" + Style.BRIGHT + Fore.BLACK + str(
                             round(result['score'], 3)), end="")
-                    print(Style.BRIGHT + Fore.BLACK + "\n\n\tTitle: " + Style.RESET_ALL + result['title'],end="")
+                    print(Style.BRIGHT + Fore.BLACK + "\n\n\tTitle: " + Style.RESET_ALL + result['title'], end="")
                     print(Style.BRIGHT + Fore.BLACK + "\tAuthors: ", end="")
                     if result['author']:
                         authors = result["author"].split("\n")
                         print(*(author for author in authors if author != ""), sep=", ", end="\n")
                     else:
-                        print("N/D\n")
+                        print("N/D")
                     print(Style.BRIGHT + Fore.BLACK + "\tYear: " + Style.RESET_ALL + result['year'],end="")
-                    print(Style.BRIGHT + Fore.BLACK + "\tPub-Type: " + Style.RESET_ALL + result['pubtype'] + "\n")
+                    if 'journal' in result and 'volume' in result and result['journal'] != '' and result['volume'] != '':
+                        print(Style.BRIGHT + Fore.BLACK + "\tJournal: " + Style.RESET_ALL + result['journal'], end="")
+                        print(Style.BRIGHT + Fore.BLACK + "\tVolume: " + Style.RESET_ALL + result['volume'], end="")
+                    else:
+                        print(Style.BRIGHT + Fore.BLACK + "\tJournal: " + Style.RESET_ALL + "N/D")
+                        print(Style.BRIGHT + Fore.BLACK + "\tVolume: " + Style.RESET_ALL + "N/D")
+                    print(Style.BRIGHT + Fore.BLACK + "\tType: " + Style.RESET_ALL + result['pubtype'] + "\n")
                     results_shown += 1
         else:
             print(Style.BRIGHT + Fore.MAGENTA + "Nessun risultato trovato\n")
@@ -305,7 +311,7 @@ class Searcher:
             v_trovato = False
             #cerco se la crossref è nelle venues
             for ven in venues:
-                if "crossref" in pubs[i] and pubs[i]["crossref"] != "" and pubs[i]["crossref"][:-1] == ven["key"]:
+                if "crossref" in pubs[i] and pubs[i]["crossref"] != "" and pubs[i]["crossref"] == ven["key"]:
                     # ho trovato una corrispondenza. Prendo lo score della venue, lo sommo allo score della pub i-esima
                     pub_to_ven.update({ "p":pubs[i] ,  "v":ven ,  "score_comb":pubs[i]["score"]+ven["score"]} )
                     v_trovato = True
@@ -318,7 +324,7 @@ class Searcher:
             p_trovato = False
             # cerco se la crossref è nelle pubs
             for pub in pubs:
-                if "crossref" in pub and pub["crossref"] != "" and venues[i]["key"] == pub["crossref"][:-1]:
+                if "crossref" in pub and pub["crossref"] != "" and venues[i]["key"] == pub["crossref"]:
                     # ho trovato una corrispondenza. Prendo lo score della pub, lo sommo allo score della venue i-esima
                     ven_to_pub.update({ "p":pub , "v":venues[i], "score_comb":pub["score"]+venues[i]["score"]})
                     p_trovato = True
@@ -366,49 +372,73 @@ class Searcher:
                 punti = venue_i["score"]
                 for j in range(len(lista)):
                     pub_j = lista[j]["p"]
-                    if pub_j != None and "crossref" in pub_j and pub_j["crossref"][:-1] == venue_i["key"]:
+                    if pub_j != None and "crossref" in pub_j and pub_j["crossref"] == venue_i["key"]:
                         punti = punti + pub_j["score"]
-                print(Back.MAGENTA + Fore.BLACK + "\tRisultato #" + str(i+1) + "\t", end="\t")
+                print(Back.MAGENTA + Fore.BLACK + "\tResult #" + str(i+1) + "\t", end="\t")
                 if self.user_score:
                     print(Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "Total Score: " + Style.BRIGHT + Fore.BLACK + str(
                         round(punti, 3)), end="")
                 print(Style.BRIGHT + Fore.MAGENTA + "\n\n\tVENUE")
-                print("\t\t" + Style.BRIGHT + Fore.BLACK + "Title: " + Fore.RESET + str(venue_i["title"][:-1]))
-                print("\t\t" + Style.BRIGHT + Fore.BLACK + "Key: " + Fore.RESET + str(venue_i["key"]) + "\n")
+                print("\t\t" + Style.BRIGHT + Fore.BLACK + "Title: " + Style.RESET_ALL + str(venue_i["title"]), end="")
+                print("\t\t" + Style.BRIGHT + Fore.BLACK + "Type: " + Style.RESET_ALL + str(venue_i["pubtype"])+ "\n")
                 for j in range(len(lista)):
                     pub_j = lista[j]["p"]
-                    if pub_j != None and "crossref" in pub_j and pub_j["crossref"][:-1] == venue_i["key"]:
+                    if pub_j != None and "crossref" in pub_j and pub_j["crossref"] == venue_i["key"]:
                         punti = punti + pub_j["score"]
                         print(Style.BRIGHT+ Fore.MAGENTA + "\tPUBLICATION #"+str(j+1))
-                        print( Style.BRIGHT + Fore.BLACK +"\t\tTitle: " + Style.RESET_ALL + str(pub_j["title"][:-1]))
-                        print("\t\t" + Style.BRIGHT + Fore.BLACK + "Crossref: " + Fore.RESET + str(
-                            pub_j["crossref"][:-1]))
+                        print( Style.BRIGHT + Fore.BLACK +"\t\tTitle: " + Style.RESET_ALL + str(pub_j["title"]), end="")
                         print( Style.BRIGHT + Fore.BLACK +"\t\tAuthors: ", end="")
-                        authors = pub_j["author"].split("\n")
-                        print(*(author for author in authors if author != ""), sep=", ")
+                        if pub_i['author']:
+                            authors = pub_i["author"].split("\n")
+                            print(*(author for author in authors if author != ""), sep=", ", end="\n")
+                        else:
+                            print("N/D")
                         print(Style.BRIGHT + Fore.BLACK + "\t\tYear: " + Style.RESET_ALL + pub_j['year'], end="")
-                        print(Style.BRIGHT + Fore.BLACK + "\t\tPub-Type: " + Style.RESET_ALL + pub_j['pubtype'])
+                        if pub_i['journal'] != '' and pub_i['volume'] != '':
+                            print(Style.BRIGHT + Fore.BLACK + "\t\tJournal: " + Style.RESET_ALL + pub_i['journal'], end="")
+                            print(Style.BRIGHT + Fore.BLACK + "\t\tVolume: " + Style.RESET_ALL + pub_i['volume'], end="")
+                        else:
+                            print(Style.BRIGHT + Fore.BLACK + "\t\tJournal: " + Style.RESET_ALL + "N/D")
+                            print(Style.BRIGHT + Fore.BLACK + "\t\tVolume: " + Style.RESET_ALL + "N/D")
+                        print(Style.BRIGHT + Fore.BLACK + "\t\tType: " + Style.RESET_ALL + pub_j['pubtype'])
                         print()
                 lista[:] = [d for d in lista if d.get('v') != venue_i]
             elif pub_i != None:
-                print(Back.MAGENTA + Fore.BLACK + "\tRisultato #" + str(i + 1) + "\t", end="\t")
+                print(Back.MAGENTA + Fore.BLACK + "\tResult #" + str(i + 1) + "\t", end="\t")
                 if self.user_score:
                     print(Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "Total Score: " + Style.BRIGHT + Fore.BLACK + str(
                         round(pub_i["score"], 3)), end="")
                 print(Style.BRIGHT + Fore.MAGENTA + "\n\n\tPUBLICATION")
-                print(Style.BRIGHT + Fore.BLACK + "\t\tTitle: " + Style.RESET_ALL + str(pub_i["title"][:-1]))
-                print("\t\t" + Style.BRIGHT + Fore.BLACK + "Crossref: " + Fore.RESET + str(
-                    pub_i["crossref"][:-1]))
+                print(Style.BRIGHT + Fore.BLACK + "\t\tTitle: " + Style.RESET_ALL + str(pub_i["title"]), end="")
                 print(Style.BRIGHT + Fore.BLACK + "\t\tAuthors: ", end="")
-                authors = pub_i["author"].split("\n")
-                print(*(author for author in authors if author != ""), sep=", ")
+                if pub_i['author']:
+                    authors = pub_i["author"].split("\n")
+                    print(*(author for author in authors if author != ""), sep=", ", end="\n")
+                else:
+                    print("N/D")
                 print(Style.BRIGHT + Fore.BLACK + "\t\tYear: " + Style.RESET_ALL + pub_i['year'], end="")
-                print(Style.BRIGHT + Fore.BLACK + "\t\tPub-Type: " + Style.RESET_ALL + pub_i['pubtype'])
+                if pub_i['journal'] != '' and pub_i['volume'] != '':
+                    print(Style.BRIGHT + Fore.BLACK + "\t\tJournal: " + Style.RESET_ALL + pub_i['journal'], end="")
+                    print(Style.BRIGHT + Fore.BLACK + "\t\tVolume: " + Style.RESET_ALL + pub_i['volume'], end="")
+                else:
+                    print(Style.BRIGHT + Fore.BLACK + "\t\tJournal: " + Style.RESET_ALL + "N/D")
+                    print(Style.BRIGHT + Fore.BLACK + "\t\tVolume: " + Style.RESET_ALL + "N/D")
+                print(Style.BRIGHT + Fore.BLACK + "\t\tType: " + Style.RESET_ALL + pub_i['pubtype'])
                 print()
                 lista[:] = [d for d in lista if d.get('p') != pub_i]
 
             i = i + 1
 
 # TODO: testare i warning e sistemare quello relativo alle venue ( test con la query di sotto )
+# TODO: controllare perché con un solo risultato ho due iterazioni di THRESHOLD e due risultati
+
+# article.title:"An Evaluation of Object-Oriented" venue.title:GTE
+"""
+article.title:"An Evaluation of Object-Oriented" venue.title:GTE article.title:"the Incremental Migration"
+
+"performance evaluation of object" venue.title:"ACM SIGSOFT"
+
+"ware Engineering Notes" "performance evaluation of object"
+"""
 
 # inproceedings.title:"Database Systems 2.0" inproceedings.title:"Structured Data Meets News" venue.title:"Proceedings of the VLDB 2019 PhD Workshop" venue:VLDB

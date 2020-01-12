@@ -12,6 +12,7 @@ from colorama import Fore, Back, Style
 from whoosh.fields import Schema, STORED, TEXT
 from whoosh.index import create_in
 
+journals = []
 
 class Index:
     indexes_path = 'Indexes/'
@@ -49,8 +50,8 @@ class Index:
             os.makedirs(self.publications_index_path)
             os.makedirs(self.venues_index_path)
 
-            self.xml_indexing(sax_parser,PublicationsHandler,self.get_publications_schema(),self.publications_index_path)
-            self.xml_indexing(sax_parser,VenuesHandler,self.get_venues_schema(),self.venues_index_path)
+            self.xml_indexing(sax_parser,PublicationsHandler,self.get_publications_schema(),self.publications_index_path, False)
+            self.xml_indexing(sax_parser,VenuesHandler,self.get_venues_schema(),self.venues_index_path, True)
 
             end_time = time.time()
             print(Fore.BLUE + 'La creazione è stata completata in ', round((end_time - start_time) / 60), Fore.BLUE + ' minuti!')
@@ -58,7 +59,7 @@ class Index:
             self.load_check_indexes()
 
 
-    def xml_indexing(self, parser, handler, schema, path):
+    def xml_indexing(self, parser, handler, schema, path, journal ):
         pe_number = round(cpu_count())
         memory_percetage = 90 / 100
         available_memory = virtual_memory().available / 1024 ** 2
@@ -69,7 +70,21 @@ class Index:
         writer = create_in(path, schema).writer(**d)
         parser.setContentHandler(handler(writer))
 
+        #TODO : try in caso di file xml specificato non esistente. Mostra errore e "riprova"
+
         parser.parse(self.xml_path)
+
+        if journal:
+            for j in journals:
+                writer.add_document(pubtype="journal",
+                                        key=j,
+                                        author="",
+                                        title=j,
+                                        year="",
+                                        publisher="",
+                                        url=""
+                                        )
+
         print(Fore.GREEN + "Ho avviato il commit...", end="")
         writer.commit()
         print(Fore.GREEN + "OK!")
