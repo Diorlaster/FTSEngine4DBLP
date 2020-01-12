@@ -409,8 +409,6 @@ class Searcher:
 
             i = i + 1
 
-# TODO: evitare threshold se uno dei due insiemi è vuoto
-# TODO: gestire/separare la stampa delle publications ( funzione? ) in modo da stamparle nel caso in cui non ci sia una venue
-# TODO: verificare gli score e il comportamento alla luce del punto precedente
+# TODO: testare i warning e sistemare quello relativo alle venue ( test con la query di sotto )
 
 # inproceedings.title:"Database Systems 2.0" inproceedings.title:"Structured Data Meets News" venue.title:"Proceedings of the VLDB 2019 PhD Workshop" venue:VLDB
