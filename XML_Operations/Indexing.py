@@ -1,4 +1,5 @@
 import os
+import sys
 import xml
 import time
 from os.path import abspath
@@ -21,6 +22,7 @@ class Index:
     xml_path = None
     publications_index = None
     venues_index = None
+    sentinel = False
 
     def load_check_indexes(self):
         try:
@@ -28,15 +30,21 @@ class Index:
             self.venues_index = index.open_dir(self.venues_index_path)
             publications_number = str(self.publications_index.doc_count())
             venues_number = str(self.venues_index.doc_count())
-            print(Style.BRIGHT+Fore.BLUE + "Indici caricati! Sono state trovate: ")
+            print(Style.BRIGHT+Fore.BLUE + "Indexes successfully loaded! Elements found: ")
             print(Fore.BLUE+"> "+Fore.WHITE + publications_number + Fore.BLUE + " publications")
             print(Fore.BLUE+"> "+Fore.WHITE + venues_number + Fore.BLUE + " venues")
             print()
         except:
-            print(Fore.RED + "Non sono riuscito a caricare gli indici... ")
-            xml_path = input(
-                Fore.YELLOW + "...per favore, indica il percorso del file XML ed il file stesso per crearli: ")
-            self.xml_path = abspath(xml_path)
+            if not self.sentinel:
+                print(Fore.RED + "Indexes not found... ")
+                self.sentinel = True
+
+            while True:
+                xml_path = input(
+                    Fore.YELLOW + "Invalid path...please, insert a valid path for the XML file: ")
+                self.xml_path = abspath(xml_path)
+                if os.path.exists(self.xml_path) and xml_path.endswith(".xml"):
+                    break
 
             start_time = time.time()
 
@@ -50,11 +58,15 @@ class Index:
             os.makedirs(self.publications_index_path)
             os.makedirs(self.venues_index_path)
 
-            self.xml_indexing(sax_parser,PublicationsHandler,self.get_publications_schema(),self.publications_index_path, False)
-            self.xml_indexing(sax_parser,VenuesHandler,self.get_venues_schema(),self.venues_index_path, True)
-
-            end_time = time.time()
-            print(Fore.BLUE + 'La creazione è stata completata in ', round((end_time - start_time) / 60), Fore.BLUE + ' minuti!')
+            try:
+                self.xml_indexing(sax_parser,PublicationsHandler,self.get_publications_schema(),self.publications_index_path, False)
+                self.xml_indexing(sax_parser, VenuesHandler, self.get_venues_schema(), self.venues_index_path, True)
+                end_time = time.time()
+                print(Fore.BLUE + 'Indexes creation completed in ', round((end_time - start_time) / 60),
+                      Fore.BLUE + ' minutes!')
+            except:
+                print( Fore.RED + "Something went wrong during the indexing process... FTSE4DBLP will shut down to prevent damaged indexes")
+                sys.exit(0)
 
             self.load_check_indexes()
 
@@ -70,24 +82,22 @@ class Index:
         writer = create_in(path, schema).writer(**d)
         parser.setContentHandler(handler(writer))
 
-        #TODO : try in caso di file xml specificato non esistente. Mostra errore e "riprova"
-
         parser.parse(self.xml_path)
-
         if journal:
             for j in journals:
                 writer.add_document(pubtype="journal",
-                                        key=j,
-                                        author="",
-                                        title=j,
-                                        year="",
-                                        publisher="",
-                                        url=""
-                                        )
+                                    key=j,
+                                    author="",
+                                    title=j,
+                                    year="",
+                                    publisher="",
+                                    url=""
+                                    )
 
-        print(Fore.GREEN + "Ho avviato il commit...", end="")
+        print(Fore.GREEN + "Committing...", end="")
         writer.commit()
         print(Fore.GREEN + "OK!")
+
 
     def get_publications_schema(self):
         publications_schema = Schema(

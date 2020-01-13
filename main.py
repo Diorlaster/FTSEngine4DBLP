@@ -3,45 +3,46 @@ from colorama import Fore, Back, Style
 from XML_Operations import Indexing
 from Search_Operations import Searching
 
-user_command = None;
-user_output_results = 3
-user_ranking_models = {'Frequency': False,
-                        'BM25F': True,
-                       }
-user_warnings = True
-user_score = True
-
 def faqs():
     while True:
-        print(Back.BLUE+Fore.WHITE+" MENU > FAQ "+Style.RESET_ALL+Style.BRIGHT + Fore.BLUE + " Che cosa vuoi sapere?")
-        print(Fore.BLUE+"1 > Cos'è FTSE-4-DBLP?")
-        print(Fore.BLUE+"2 > Come funziona la ricerca?")
-        print(Fore.BLUE+"3 > Cosa cambia tra i due modelli di ranking?")
-        print(Fore.BLUE+"3 > A cosa servono i warnings?")
-        print(Fore.BLUE+"5 > Torna al menu principale")
+        print(Back.BLUE+Fore.BLACK+" MAIN MENU > FAQ ")
+        print(Style.BRIGHT + Fore.BLUE + "\n\tWhat would you like to know?")
+        print(Fore.BLUE+"\t\t1 > About FTSE-4-DBLP")
+        print(Fore.BLUE+"\t\t2 > How research works")
+        print(Fore.BLUE+"\t\t3 > Differences between ranking models")
+        print(Fore.BLUE+"\t\t4 > About warnings")
+        print(Fore.BLUE+"\t\t5 > Back to main menu")
         print()
         user_command = input(Fore.YELLOW + ">>> ")
         print()
 
         if user_command == '1':
-            print(Fore.RED+"Lavori in corso...")
+            print(Fore.RED+"Work in progress...")
             print()
         elif user_command == '2':
-            print(Fore.RED+"Lavori in corso...")
+            print(Fore.RED+"Work in progress...")
             print()
         elif user_command == '3':
-            print(Fore.RED+"Lavori in corso...")
+            print(Fore.RED+"Work in progress...")
             print()
         elif user_command == '4':
-            print(Fore.RED+"Lavori in corso...")
+            print(Fore.RED+"Work in progress...")
             print()
         elif user_command == '5':
             break
         else:
-            print(Fore.RED+"Non hai selezionato un comando valido...riprova!")
+            print(Fore.RED+"Invalid option...please, try again!")
     return
 
 if __name__ == "__main__":
+
+    user_command = None;
+    user_output_results = 3
+    user_ranking_models = {'Frequency': False,
+                           'BM25F': True,
+                           }
+    user_warnings = True
+    user_score = True
 
     init(autoreset=True)
     print()
@@ -53,31 +54,32 @@ if __name__ == "__main__":
     print(Style.BRIGHT + Fore.BLUE + "     |   |       |  |     ____|  |   |  |___ " + Fore.WHITE + "    |_____    _|" + Fore.BLUE + "    |  |__/  |  |/   \|  |___|   |     ")
     print(Style.BRIGHT + Fore.BLUE + "     |___|       |__|    |_______|   |______|" + Fore.WHITE + "          |__|  " + Fore.BLUE + "    |_______/|_______/|______|___|     ")
     print()
-    print("     "+Back.BLUE + Fore.LIGHTWHITE_EX+ "                              Motore di ricerca FULL-TEXT per DBLP                             ")
+    print("     "+Back.BLUE + Fore.LIGHTWHITE_EX+ "                                FULL-TEXT Search Engine for DBLP                               ")
     print()
 
     indexes = Indexing.Index();
     indexes.load_check_indexes()
 
     while True:
-        print(Back.BLUE+Fore.WHITE+" MENU "+Style.RESET_ALL+Style.BRIGHT+Fore.BLUE+" Che cosa posso fare?")
-        print(Fore.BLUE+"1 > Cerca")
-        print(Fore.BLUE+"2 > Cambia modello di ranking    [", end="")
+        print(Back.BLUE+Fore.BLACK+" MAIN MENU ")
+        print(Style.BRIGHT+Fore.BLUE+"\nWhat would you like to do?")
+        print(Fore.BLUE+"\t1 > Search")
+        print(Fore.BLUE+"\t2 > Change ranking model         [", end="")
         if user_ranking_models['BM25F']:
             print(Style.BRIGHT+Fore.WHITE+" OKAPI BM25F "+Style.RESET_ALL+Fore.BLUE+"| FREQUENCY ]")
         else:
             print(Fore.BLUE+" OKAPI BM25F | "+Style.BRIGHT+Fore.WHITE+"FREQUENCY"+Style.RESET_ALL+Fore.BLUE+" ]")
-        print(Fore.BLUE+"3 > Imposta numero di risultati  [ "+Style.BRIGHT+Fore.WHITE+str(user_output_results)+Style.RESET_ALL+Fore.BLUE+" ]")
+        print(Fore.BLUE+"\t3 > Set output results limit     [ "+Style.BRIGHT+Fore.WHITE+str(user_output_results)+Style.RESET_ALL+Fore.BLUE+" ]")
         if user_warnings:
-            print(Fore.BLUE+"4 > Cambia preferenza warnings   [ "+Style.BRIGHT+Fore.WHITE+"MOSTRA"+Style.NORMAL+Fore.BLUE+" | NASCONDI ]")
+            print(Fore.BLUE+"\t4 > Switch warnings preference   [ "+Style.BRIGHT+Fore.WHITE+"SHOW"+Style.NORMAL+Fore.BLUE+" | HIDE ]")
         else :
-            print(Fore.BLUE+"4 > Cambia preferenza warnings   [ MOSTRA | "+ Style.BRIGHT + Fore.WHITE + "NASCONDI"+ Style.RESET_ALL+Fore.BLUE+" ]")
+            print(Fore.BLUE+"\t4 > Switch warnings preference   [ SHOW | "+ Style.BRIGHT + Fore.WHITE + "HIDE"+ Style.RESET_ALL+Fore.BLUE+" ]")
         if user_score:
-            print(Fore.BLUE+"5 > Cambia preferenza score      [ "+Style.BRIGHT+Fore.WHITE+"MOSTRA"+Style.NORMAL+Fore.BLUE+" | NASCONDI ]")
+            print(Fore.BLUE+"\t5 > Switch score preference      [ "+Style.BRIGHT+Fore.WHITE+"SHOW"+Style.NORMAL+Fore.BLUE+" | HIDE ]")
         else :
-            print(Fore.BLUE+"5 > Cambia preferenza score      [ MOSTRA | "+ Style.BRIGHT + Fore.WHITE + "NASCONDI"+ Style.RESET_ALL+Fore.BLUE+" ]")
-        print(Fore.BLUE+"6 > FAQ")
-        print(Fore.BLUE+"7 > Esci")
+            print(Fore.BLUE+"\t5 > Switch score preference      [ SHOW | "+ Style.BRIGHT + Fore.WHITE + "HIDE"+ Style.RESET_ALL+Fore.BLUE+" ]")
+        print(Fore.BLUE+"\t6 > FAQ")
+        print(Fore.BLUE+"\t7 > Exit")
         print()
         user_command = input(Fore.YELLOW+">>> ")
         print()
@@ -89,37 +91,37 @@ if __name__ == "__main__":
                 Searching.Searcher(indexes, user_output_results, user_warnings, user_score, "Frequency").search()
         elif user_command == '2':
             if user_ranking_models['BM25F']:
-                print(Style.BRIGHT+Fore.BLUE + "Modello di ranking cambiato da OKAPI BM25F a FREQUENCY!\n")
+                print(Style.BRIGHT+Fore.BLUE + "Ranking model switched from OKAPI BM25F to FREQUENCY!\n")
                 user_ranking_models['BM25F'] = False
                 user_ranking_models['Frequency'] = True
             else:
-                print(Style.BRIGHT+Fore.BLUE + "Modello di ranking cambiato da FREQUENCY ad OKAPI BM25F!\n")
+                print(Style.BRIGHT+Fore.BLUE + "Ranking model switched from FREQUENCY to OKAPI BM25F!\n")
                 user_ranking_models['Frequency'] = False
                 user_ranking_models['BM25F'] = True
         elif user_command == '3':
             while True:
                 try:
-                    user_output_results = int(input(Fore.YELLOW + "Quale limite vuoi impostare? >>> "))
+                    user_output_results = int(input(Fore.YELLOW + "Enter your limit >>> "))
                     break
                 except ValueError:
-                    print(Fore.RED+"Non è un numero valido...riprova! ", end="")
+                    print(Fore.RED+"Invalid number...please, try again! ", end="")
         elif user_command == '4':
             user_warnings = not user_warnings
             if user_warnings:
-                print(Style.BRIGHT + Fore.BLUE + "Adesso eventuali warnings verranno mostrati!\n")
+                print(Style.BRIGHT + Fore.BLUE + "Warnings will be displayed!\n")
             else:
-                print(Style.BRIGHT + Fore.BLUE + "Adesso eventuali warnings verranno nascosti!\n")
+                print(Style.BRIGHT + Fore.BLUE + "Warnings won't be displayed!\n")
         elif user_command == '5':
             user_score = not user_score
             if user_score:
-                print(Style.BRIGHT + Fore.BLUE + "Adesso gli score verrano mostrati!\n")
+                print(Style.BRIGHT + Fore.BLUE + "Scores will be displayed!\n")
             else:
-                print(Style.BRIGHT + Fore.BLUE + "Adesso gli score verranno nascosti!\n")
+                print(Style.BRIGHT + Fore.BLUE + "Scores won't be displayed!\n")
         elif user_command == '6':
             faqs()
         elif user_command == '7':
-            print(Style.BRIGHT+Fore.BLUE+"Torna presto!")
+            print(Style.BRIGHT+Fore.BLUE+"Come back soon!")
             print()
             break;
         else:
-            print(Fore.RED+"Non hai selezionato un comando valido...riprova!")
+            print(Fore.RED+"Invalid option...please, try again!\n")

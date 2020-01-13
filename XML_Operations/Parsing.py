@@ -48,7 +48,7 @@ class PublicationsHandler(xml.sax.ContentHandler):
 
     def startDocument(self):
         """Called when the XML Parser starts reading the file"""
-        print(Fore.GREEN + "Ho avviato l'indicizzazione delle publications...", end="")
+        print(Fore.GREEN + "Indexing pubblications...", end="")
 
     def startElement(self, tag, attributes):
         """Called when a publication is parsed"""
@@ -86,8 +86,6 @@ class PublicationsHandler(xml.sax.ContentHandler):
 
         if self.tag == tag:
             if self.journal != '' and self.crossref == '':
-                if self.journal == "ware Engineering Notes":
-                    print("ciao")
                 if self.journal != '\n' and self.journal.split('\n')[0] not in Indexing.journals:
                     Indexing.journals.append(self.journal.split('\n')[0])
                 self.saxWriter.add_document(pubtype=self.tag,
@@ -160,7 +158,7 @@ class VenuesHandler(xml.sax.ContentHandler):
 
     def startDocument(self):
         """Called when the XML Parser starts reading the file"""
-        print(Fore.GREEN + "Ho avviato l'indicizzazione delle venues...", end="")
+        print(Fore.GREEN + "Indexing venues...", end="")
 
     def startElement(self, tag, attributes):
         """Called when a venue is parsed"""

@@ -1,8 +1,9 @@
 from colorama import Fore, Back, Style
 from whoosh.qparser import MultifieldParser
+from XML_Operations import Parsing
+from whoosh.scoring import Frequency, BM25F
 import time
 
-from whoosh.scoring import Frequency, BM25F  # NON CANCELLARE, VENGONO USATI VIA EVAL()
 
 class Searcher:
     user_output_results = None;
@@ -27,78 +28,94 @@ class Searcher:
         self.user_warnings = user_warnings
         self.user_score = user_score
         self.query_warnings = {}
-        self.ranking = ranking
+        if ranking == "BM25F":
+            self.ranking = BM25F
+        elif ranking == "Frequency":
+            self.ranking = Frequency
 
     def search(self):
-        print(Back.BLUE + Fore.BLACK + " MENU > CERCA ")
-        user_query = input(Fore.YELLOW + "Che cosa vuoi cercare? >>> ")
+        print(Back.BLUE + Fore.BLACK + " MAIN MENU > SEARCH ")
+        user_query = input(Fore.YELLOW + "\n\tWhat are you looking for? >>> ")
+        print()
 
         user_splitted_query, user_continue = self.get_queries(user_query)
 
         if not user_continue:
             return
 
-        user_p_query, user_v_query = self.get_whoosh_query(user_splitted_query);
-        print("\n>> P >> " + user_p_query + "\n")
-        print("\n>> V >> " + user_v_query + "\n")
+        user_p_query, user_v_query = self.get_whoosh_queries(user_splitted_query);
+        #print("\n>> P >> " + user_p_query + "\n")
+        #print("\n>> V >> " + user_v_query + "\n")
 
         if self.user_warnings:
             if self.query_warnings:
-                print(Back.CYAN + Fore.BLACK + "\tWARNINGS\t")
+                print("\t"+Back.CYAN + Fore.BLACK + "\tWARNINGS\t"+Style.RESET_ALL+"\n")
                 for query, warnings in self.query_warnings.items():
                     for warning in warnings:
-                        print(Fore.CYAN + "in " + Fore.YELLOW + query + Fore.CYAN + " | " + warning)
+                        print(Fore.CYAN + "\t\tin " + Fore.YELLOW + query + Fore.CYAN + " | " + warning)
+                print("\n")
 
-        print(Fore.BLUE + '\n...la ricerca potrebbe richiedere un po\' di tempo...\n')
+        print(Fore.BLUE + '\t...your request may require some time...\n')
         start_time = time.time()
 
         # RICERCA INDICE PUBLICATIONS
-        with self.publications_index.searcher(weighting=eval(self.ranking)) as publications_searcher:
-            qp = MultifieldParser(["author", "title", "year", "pubtype"], schema=self.publications_index.schema)
-            q = qp.parse(user_p_query)
-            results = publications_searcher.search(q, limit=None)
-            # ciò che segue è necessario per il seguente motivo:
-            # https://stackoverflow.com/questions/19477319/whoosh-accessing-search-page-result-items-throws-readerclosed-exception
-            for result in results:
-                result_to_store = {}
-                for field in result.items():
-                    result_to_store.update({field[0]: field[1]})
-                result_to_store.update({'score': result.score})
-                self.publications_results.append(result_to_store)
+        with self.publications_index.searcher(weighting=self.ranking) as publications_searcher:
+            try:
+                qp = MultifieldParser(["author", "title", "year", "pubtype"], schema=self.publications_index.schema)
+                q = qp.parse(user_p_query)
+                results = publications_searcher.search(q, limit=None)
+                # ciò che segue è necessario per il seguente motivo:
+                # https://stackoverflow.com/questions/19477319/whoosh-accessing-search-page-result-items-throws-readerclosed-exception
+                for result in results:
+                    result_to_store = {}
+                    for field in result.items():
+                        result_to_store.update({field[0]: field[1]})
+                    result_to_store.update({'score': result.score})
+                    self.publications_results.append(result_to_store)
+            except:
+                print(
+                    Fore.CYAN + "Due to anomalies in the query format that FTSE4DBLP was unable to handle,"+ Fore.YELLOW + " publications " + Fore.CYAN + "results could be not 100% accurate. "
+                               "\nPlease, use a correct query format ( more infos can be found in FAQ section )\n")
 
         # RICERCA INDICE VENUES
-        with self.venues_index.searcher(weighting=eval(self.ranking)) as venues_searcher:
-            qp = MultifieldParser(['title', 'publisher'], schema=self.venues_index.schema)
-            q = qp.parse(user_v_query)
-            results = venues_searcher.search(q, limit=None)
-            # ciò che segue è necessario per il seguente motivo:
-            # https://stackoverflow.com/questions/19477319/whoosh-accessing-search-page-result-items-throws-readerclosed-exception
-            for result in results:
-                result_to_store = {}
-                for field in result.items():
-                    result_to_store.update({field[0]: field[1]})
-                result_to_store.update({'score': result.score})
-                self.venues_results.append(result_to_store)
-
-        #print(Back.YELLOW + Style.BRIGHT + Fore.BLACK + "\tRISULTATI PUBLICATIONS\t" + Style.RESET_ALL + "\n")
-        #self.print_results(self.publications_results)
-        #print(Back.YELLOW + Style.BRIGHT + Fore.BLACK + "\tRISULTATI VENUES\t" + Style.RESET_ALL + "\n")
-        #self.print_results(self.venues_results)
+        with self.venues_index.searcher(weighting=self.ranking) as venues_searcher:
+            try:
+                qp = MultifieldParser(['title', 'publisher'], schema=self.venues_index.schema)
+                q = qp.parse(user_v_query)
+                results = venues_searcher.search(q, limit=None)
+                # ciò che segue è necessario per il seguente motivo:
+                # https://stackoverflow.com/questions/19477319/whoosh-accessing-search-page-result-items-throws-readerclosed-exception
+                for result in results:
+                    result_to_store = {}
+                    for field in result.items():
+                        result_to_store.update({field[0]: field[1]})
+                    result_to_store.update({'score': result.score})
+                    self.venues_results.append(result_to_store)
+            except:
+                print(
+                    Fore.CYAN + "Due to anomalies in the query format that FTSE4DBLP was unable to handle,"+ Fore.YELLOW + " venues " + Fore.CYAN + "results could be not 100% accurate. "
+                               "\nPlease, use a correct query format ( more infos can be found in FAQ section )\n")
 
         if len(self.publications_results) > 0 and len(self.venues_results) > 0:
-            lista = self.threshold(self.publications_results, self.venues_results)
-            self.print_ts(lista)
+            threshold_results = self.threshold_algorithm(self.publications_results, self.venues_results)
+            print( "\t" + Style.BRIGHT + Fore.BLACK + str(len(self.publications_results)+len(self.venues_results))
+                   + Style.RESET_ALL + Fore.BLUE + " elements found. The following are the most relevant results: ", end="")
+            self.print_threshold_results(threshold_results)
         elif len(self.publications_results) <= 0 and len(self.venues_results) > 0:
-            self.print_results(self.venues_results)
+            print("\t" + Style.BRIGHT + Fore.BLACK + str(len(self.venues_results))
+                  + Style.RESET_ALL + Fore.BLUE + " elements found. The following are the most relevant results: ",
+                  end="")
         elif len(self.publications_results) > 0 and len(self.venues_results) <= 0:
+            print("\t" + Style.BRIGHT + Fore.BLACK + str(len(self.publications_results))
+                    + Style.RESET_ALL + Fore.BLUE + " elements found. The following are the most relevant results: ",
+                  end="")
             self.print_results(self.publications_results)
         else:
-            print(Style.BRIGHT + Fore.MAGENTA + "Nessun risultato trovato\n")
+            print(Style.BRIGHT + Fore.MAGENTA + "\tNo result found")
 
         end_time = time.time()
-        print(Fore.BLUE + 'La ricerca è stata completata in', round((end_time - start_time)), Fore.BLUE + 'secondi!\n')
 
-        #self.print_results(lista)
+        print("\n\t" + Fore.BLUE + 'Request completed in ', round((end_time - start_time),1), Fore.BLUE + 'seconds!\n')
 
     def get_queries(self, user_query):
         # ad ogni posizione di user_splitted_query avrò una query. Tutte andranno messe in OR.
@@ -110,7 +127,7 @@ class Searcher:
         for c in range(0, len(user_query)):
             if user_query[c] == "\"":
                 phrase_count = phrase_count + 1
-                # TODO specificare nelle FAQ che dopo una phrase individuata, la parola successiva viene automaticamente staccare e assegnata ad una nuova query
+                # TODO specificare nelle FAQ che dopo una phrase individuata, la parola successiva viene automaticamente staccata e assegnata ad una nuova query
                 if phrase_count == 2:
                     user_splitted_query.append(user_query[query_start:c + 1])
                     query_start = c + 1
@@ -120,27 +137,27 @@ class Searcher:
                 query_start = c + 1
         if phrase_count != 0 and phrase_count != 2:
             print(
-                Fore.RED + "\nSono state rilevate delle anomalie nel formato della query che potrebbero portare a mostrarti ciò che non stai cercando."
-                           "\nEcco come ho interpretato la tue richieste:\n")
+                Fore.RED + "\nThere where anomalies in the query format that could lead to showing you what you're not looking for."
+                           "\nYour request has been translated has follow:\n")
             for query in filter(None, user_splitted_query):
                 print("\t" + query)
             while True:
-                user_continue = input(Fore.YELLOW + "\nContinuare? [S/N] >>> ")
-                if user_continue.upper() == 'S':
+                user_continue = input(Fore.YELLOW + "\nContinue? [Y/N] >>> ")
+                if user_continue.upper() == 'Y':
                     print()
                     return filter(None, user_splitted_query), True
                 elif user_continue.upper() == 'N':
                     print()
                     return "STOP", False
                 else:
-                    print(Fore.LIGHTRED_EX + "Selezionare un'opzione valida", end="")
+                    print(Fore.LIGHTRED_EX + "Please, select a valid option", end="")
 
-        print("\n" + str(user_splitted_query) + "\n")
+        #print("\n" + str(user_splitted_query) + "\n")
 
         # rimuovo gli elementi vuoti dalla lista e la ritorno
         return filter(None, user_splitted_query), True
 
-    def get_whoosh_query(self, user_splitted_query):
+    def get_whoosh_queries(self, user_splitted_query):
         publications_whoosh_query = ""
         venues_whoosh_query = ""
 
@@ -185,9 +202,11 @@ class Searcher:
                     if not query_field[1]:
                         query_text = query_analysis[-1]
 
+
             if not query_element[1] and query_element[0] != '*':
-                warnings.append(Fore.YELLOW + str(query_element[0]) + Fore.CYAN + " non è un elemento valido."
-                                                                                  " Il resto della query verrà pertanto cercato in tutti gli elementi. ")
+                warnings.append(Fore.YELLOW + str(query_element[0]) + Fore.CYAN + " is not a valid element so"
+                                                                                  " the rest of the query will be searched among every element. ")
+
             if query_element[1] and query_element[0] != '*':
                 if query_element[0] in self.publications_elements:
                     publications_whoosh_query = publications_whoosh_query + "( "
@@ -199,8 +218,8 @@ class Searcher:
                                 publications_whoosh_query = publications_whoosh_query + query_field[0] + ":"
                         else:
                             warnings.append(
-                                Fore.YELLOW + str(query_field[0]) + Fore.CYAN + " non è un campo valido o ammesso."
-                                                                                " Verrà pertanto ignorato, cercando " + Fore.YELLOW + query_text + Fore.CYAN + " in " + Fore.YELLOW +
+                                Fore.YELLOW + str(query_field[0]) + Fore.CYAN + " is not a valid field so"
+                                                                                "it will be ignored. " + Fore.YELLOW + query_text + Fore.CYAN + " will be searched among " + Fore.YELLOW +
                                 query_element[0])
                     publications_whoosh_query = publications_whoosh_query + query_text + " ) OR "
                 elif query_element[0] == 'venue':
@@ -211,14 +230,18 @@ class Searcher:
                                 venues_whoosh_query = venues_whoosh_query + query_field[0] + ":"
                         else:
                             warnings.append(
-                                Fore.YELLOW + str(query_field[0]) + Fore.CYAN + " non è un campo valido o ammesso."
-                                                                                " Verrà pertanto ignorato, cercando " + Fore.YELLOW + query_text + Fore.CYAN + " in tutte le " + Fore.YELLOW + "venues")
+                                Fore.YELLOW + str(query_field[0]) + Fore.CYAN + " is not a valid field so "
+                                                                                " it will be ignored. " + Fore.YELLOW + query_text + Fore.CYAN + " will be searched among every " + Fore.YELLOW + "venue")
                     venues_whoosh_query = venues_whoosh_query + query_text + " ) OR "
             else:
                 if query_field[0] not in self.publications_fields and query_field[0] not in self.venues_fields and \
                         query_field[0] != '*':
-                    warnings.append(Fore.YELLOW + str(query_field[0]) + Fore.CYAN + " non è un campo valido o ammesso. "
-                                                                                    "Verrà pertanto ignorato, cercando " + Fore.YELLOW + query_text + Fore.CYAN + " tra tutti gli elementi.")
+                    if query_element[0] == "*" and query_element[1]:
+                        warnings.append(Fore.YELLOW + str(query_field[0]) + Fore.CYAN + " is not a valid field so "
+                                                                                        "it will be ignored. " + Fore.YELLOW + query_text + Fore.CYAN + " will be searched among every "+ Fore.YELLOW+ "publication")
+                    else:
+                        warnings.append(Fore.YELLOW + str(query_field[0]) + Fore.CYAN + " is not a valid field so "
+                                                                                        "it will be ignored. " + Fore.YELLOW + query_text + Fore.CYAN + " will be searched among every element.")
                 if query_field[1] and query_field[0] != "*":
                     if query_field[0] in self.publications_fields:
                         publications_whoosh_query = publications_whoosh_query + "( " + query_field[
@@ -255,182 +278,151 @@ class Searcher:
         # print(Fore.CYAN + "--- FIELD NON VALIDO ---")
         return query_analysis, False
 
-    def print_results(self, results_set):
-        # controllo se ci sono risultati altrimenti stampo "Nessun risultato trovato"
-        if len(results_set) > 0:
-            print(Fore.BLUE + "Sono stati trovati " + Style.BRIGHT + Fore.BLACK + str(
-                len(results_set)) + Style.RESET_ALL + Fore.BLUE + " risultati!\n")
-            # scorro i risultati, prendo i campi interessati e li stampo
-            results_shown = 0
-            for result in results_set:
-                if results_shown < self.user_output_results:
-                    print(Back.MAGENTA + Style.BRIGHT + Fore.BLACK + "\tResult #" + str(results_shown + 1)+"\t", end="\t")
-                    if self.user_score:
-                        print(Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "Score:\t" + Style.BRIGHT + Fore.BLACK + str(
-                            round(result['score'], 3)), end="")
-                    print(Style.BRIGHT + Fore.BLACK + "\n\n\tTitle: " + Style.RESET_ALL + result['title'], end="")
-                    print(Style.BRIGHT + Fore.BLACK + "\tAuthors: ", end="")
-                    if result['author']:
-                        authors = result["author"].split("\n")
-                        print(*(author for author in authors if author != ""), sep=", ", end="\n")
-                    else:
-                        print("N/D")
-                    print(Style.BRIGHT + Fore.BLACK + "\tYear: " + Style.RESET_ALL + result['year'],end="")
-                    if 'journal' in result and 'volume' in result and result['journal'] != '' and result['volume'] != '':
-                        print(Style.BRIGHT + Fore.BLACK + "\tJournal: " + Style.RESET_ALL + result['journal'], end="")
-                        print(Style.BRIGHT + Fore.BLACK + "\tVolume: " + Style.RESET_ALL + result['volume'], end="")
-                    else:
-                        print(Style.BRIGHT + Fore.BLACK + "\tJournal: " + Style.RESET_ALL + "N/D")
-                        print(Style.BRIGHT + Fore.BLACK + "\tVolume: " + Style.RESET_ALL + "N/D")
-                    print(Style.BRIGHT + Fore.BLACK + "\tType: " + Style.RESET_ALL + result['pubtype'] + "\n")
-                    results_shown += 1
-        else:
-            print(Style.BRIGHT + Fore.MAGENTA + "Nessun risultato trovato\n")
-
-    def threshold(self, pubs, venues):
-        soglia = 0
-        score_p = 0
-        score_v = 0
+    def threshold_algorithm(self, publications, venues):
         i = 0
+        threshold_results = []
 
-        lista = []
-
-        print(">>>>>> "+str(len(pubs)))
-        print(">>>>>> "+str(len(venues)))
+        #print(">>>>>> "+str(len(pubs)))
+        #print(">>>>>> "+str(len(venues)))
         while True:
 
-            if i >= len(pubs) or i >= len(venues):
+            if i >= len(publications) or i >= len(venues):
                 break
 
             pub_to_ven = {}
             ven_to_pub = {}
             score_v = venues[i]["score"]
-            score_p = pubs[i]["score"]
-            soglia = score_p + score_v
+            score_p = publications[i]["score"]
+            threshold = score_p + score_v
 
-            v_trovato = False
+            venue_found = False
             #cerco se la crossref è nelle venues
-            for ven in venues:
-                if "crossref" in pubs[i] and pubs[i]["crossref"] != "" and pubs[i]["crossref"] == ven["key"]:
+            for v in venues:
+                if "crossref" in publications[i] and publications[i]["crossref"] != "" and publications[i]["crossref"] == v["key"]:
                     # ho trovato una corrispondenza. Prendo lo score della venue, lo sommo allo score della pub i-esima
-                    pub_to_ven.update({ "p":pubs[i] ,  "v":ven ,  "score_comb":pubs[i]["score"]+ven["score"]} )
-                    v_trovato = True
+                    pub_to_ven.update({ "p":publications[i] ,  "v":v ,  "combined_score":publications[i]["score"]+v["score"]} )
+                    venue_found = True
                     break
-            if not v_trovato:
-                pub_to_ven.update({ "p": pubs[i], "v": None, "score_comb":pubs[i]["score"]  })
+            if not venue_found:
+                pub_to_ven.update({ "p": publications[i], "v": None, "combined_score":publications[i]["score"]  })
 
-            lista.append(pub_to_ven)
+            threshold_results.append(pub_to_ven)
 
-            p_trovato = False
+            publication_found = False
             # cerco se la crossref è nelle pubs
-            for pub in pubs:
-                if "crossref" in pub and pub["crossref"] != "" and venues[i]["key"] == pub["crossref"]:
+            for p in publications:
+                if "crossref" in p and p["crossref"] != "" and venues[i]["key"] == p["crossref"]:
                     # ho trovato una corrispondenza. Prendo lo score della pub, lo sommo allo score della venue i-esima
-                    ven_to_pub.update({ "p":pub , "v":venues[i], "score_comb":pub["score"]+venues[i]["score"]})
-                    p_trovato = True
+                    ven_to_pub.update({ "p":p , "v":venues[i], "combined_score":p["score"]+venues[i]["score"]})
+                    publication_found = True
                     break
-            if not p_trovato:
-                ven_to_pub.update( { "p":None , "v": venues[i], "score_comb":venues[i]["score"] })
+            if not publication_found:
+                ven_to_pub.update( { "p":None , "v": venues[i], "combined_score":venues[i]["score"] })
 
             # ho messo le due righe nella tabella
 
-            lista.append(ven_to_pub)
+            threshold_results.append(ven_to_pub)
 
-            lista = sorted(lista, key = lambda i: i['score_comb'], reverse=True)
+            threshold_results = sorted(threshold_results, key = lambda i: i['combined_score'], reverse=True)
 
-            if lista[0]['score_comb'] > soglia:
+            if threshold_results[0]['combined_score'] > threshold:
                 break
             else:
                 i = i+1
 
-        print(">>>>> FERMO DOPO "+str(i+1)+" ITERAZIONI.")
-        return lista
+        #print(">>>>> FERMO DOPO "+str(i+1)+" ITERAZIONI.")
+        return threshold_results
 
-    def print_ts(self, lista):
+    def print_threshold_results(self, threshold_results):
 
-        if not lista:
-            print(Style.BRIGHT + Fore.MAGENTA + "Nessun risultato trovato\n")
+        if not threshold_results:
+            print(Style.BRIGHT + Fore.MAGENTA + "\tNo result found")
             return
 
         # rimozione duplicati
-        lista = [i for n, i in enumerate(lista) if i not in lista[n + 1:]]
+        threshold_results = [i for n, i in enumerate(threshold_results) if i not in threshold_results[n + 1:]]
 
-        if len(lista) < self.user_output_results:
-            self.user_output_results = len(lista)
-
-        """
-        if len(lista) > self.user_output_results:
-            lista = lista[:self.user_output_results] 
-        """
+        if len(threshold_results) < self.user_output_results:
+            self.user_output_results = len(threshold_results)
 
         print()
         i=0
-        while i < self.user_output_results and len(lista) > 0:
-            venue_i = lista[0]["v"]
-            pub_i = lista[0]["p"]
+        while i < self.user_output_results and len(threshold_results) > 0:
+            venue_i = threshold_results[0]["v"]
+            pub_i = threshold_results[0]["p"]
             if venue_i != None:
                 punti = venue_i["score"]
-                for j in range(len(lista)):
-                    pub_j = lista[j]["p"]
+                for j in range(len(threshold_results)):
+                    pub_j = threshold_results[j]["p"]
                     if pub_j != None and "crossref" in pub_j and pub_j["crossref"] == venue_i["key"]:
                         punti = punti + pub_j["score"]
-                print(Back.MAGENTA + Fore.BLACK + "\tResult #" + str(i+1) + "\t", end="\t")
+                print("\n\t" +Back.MAGENTA + Fore.BLACK + "\tResult #" + str(i+1) + "\t", end="\t")
                 if self.user_score:
                     print(Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "Total Score: " + Style.BRIGHT + Fore.BLACK + str(
-                        round(punti, 3)), end="")
-                print(Style.BRIGHT + Fore.MAGENTA + "\n\n\tVENUE")
-                print("\t\t" + Style.BRIGHT + Fore.BLACK + "Title: " + Style.RESET_ALL + str(venue_i["title"]), end="")
-                print("\t\t" + Style.BRIGHT + Fore.BLACK + "Type: " + Style.RESET_ALL + str(venue_i["pubtype"])+ "\n")
-                for j in range(len(lista)):
-                    pub_j = lista[j]["p"]
+                        round(punti, 3)))
+                self.print_element(venue_i, -1)
+                for j in range(len(threshold_results)):
+                    pub_j = threshold_results[j]["p"]
                     if pub_j != None and "crossref" in pub_j and pub_j["crossref"] == venue_i["key"]:
                         punti = punti + pub_j["score"]
-                        print(Style.BRIGHT+ Fore.MAGENTA + "\tPUBLICATION #"+str(j+1))
-                        print( Style.BRIGHT + Fore.BLACK +"\t\tTitle: " + Style.RESET_ALL + str(pub_j["title"]), end="")
-                        print( Style.BRIGHT + Fore.BLACK +"\t\tAuthors: ", end="")
-                        if pub_i['author']:
-                            authors = pub_i["author"].split("\n")
-                            print(*(author for author in authors if author != ""), sep=", ", end="\n")
-                        else:
-                            print("N/D")
-                        print(Style.BRIGHT + Fore.BLACK + "\t\tYear: " + Style.RESET_ALL + pub_j['year'], end="")
-                        if pub_i['journal'] != '' and pub_i['volume'] != '':
-                            print(Style.BRIGHT + Fore.BLACK + "\t\tJournal: " + Style.RESET_ALL + pub_i['journal'], end="")
-                            print(Style.BRIGHT + Fore.BLACK + "\t\tVolume: " + Style.RESET_ALL + pub_i['volume'], end="")
-                        else:
-                            print(Style.BRIGHT + Fore.BLACK + "\t\tJournal: " + Style.RESET_ALL + "N/D")
-                            print(Style.BRIGHT + Fore.BLACK + "\t\tVolume: " + Style.RESET_ALL + "N/D")
-                        print(Style.BRIGHT + Fore.BLACK + "\t\tType: " + Style.RESET_ALL + pub_j['pubtype'])
-                        print()
-                lista[:] = [d for d in lista if d.get('v') != venue_i]
+                        self.print_element(pub_i, j)
+                threshold_results[:] = [d for d in threshold_results if d.get('v') != venue_i]
             elif pub_i != None:
-                print(Back.MAGENTA + Fore.BLACK + "\tResult #" + str(i + 1) + "\t", end="\t")
+                print("\n\t" +Back.MAGENTA + Fore.BLACK + "\tResult #" + str(i + 1) + "\t", end="\t")
                 if self.user_score:
                     print(Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "Total Score: " + Style.BRIGHT + Fore.BLACK + str(
-                        round(pub_i["score"], 3)), end="")
-                print(Style.BRIGHT + Fore.MAGENTA + "\n\n\tPUBLICATION")
-                print(Style.BRIGHT + Fore.BLACK + "\t\tTitle: " + Style.RESET_ALL + str(pub_i["title"]), end="")
-                print(Style.BRIGHT + Fore.BLACK + "\t\tAuthors: ", end="")
-                if pub_i['author']:
-                    authors = pub_i["author"].split("\n")
-                    print(*(author for author in authors if author != ""), sep=", ", end="\n")
-                else:
-                    print("N/D")
-                print(Style.BRIGHT + Fore.BLACK + "\t\tYear: " + Style.RESET_ALL + pub_i['year'], end="")
-                if pub_i['journal'] != '' and pub_i['volume'] != '':
-                    print(Style.BRIGHT + Fore.BLACK + "\t\tJournal: " + Style.RESET_ALL + pub_i['journal'], end="")
-                    print(Style.BRIGHT + Fore.BLACK + "\t\tVolume: " + Style.RESET_ALL + pub_i['volume'], end="")
-                else:
-                    print(Style.BRIGHT + Fore.BLACK + "\t\tJournal: " + Style.RESET_ALL + "N/D")
-                    print(Style.BRIGHT + Fore.BLACK + "\t\tVolume: " + Style.RESET_ALL + "N/D")
-                print(Style.BRIGHT + Fore.BLACK + "\t\tType: " + Style.RESET_ALL + pub_i['pubtype'])
-                print()
-                lista[:] = [d for d in lista if d.get('p') != pub_i]
+                        round(pub_i["score"], 3)))
+                self.print_element(pub_i, -1)
+                threshold_results[:] = [d for d in threshold_results if d.get('p') != pub_i]
 
             i = i + 1
 
-# TODO: testare i warning e sistemare quello relativo alle venue ( test con la query di sotto )
-# TODO: controllare perché con un solo risultato ho due iterazioni di THRESHOLD e due risultati
+    def print_results(self, results_set):
+        if len(results_set) > 0:
+            results_shown = 0
+            print()
+            for result in results_set:
+                if results_shown < self.user_output_results:
+                    print("\n\t" + Back.MAGENTA + Style.BRIGHT + Fore.BLACK + "\tResult #" + str(results_shown + 1)+"\t", end="\t")
+                    if self.user_score:
+                        print(Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "Score:\t" + Style.BRIGHT + Fore.BLACK + str(
+                            round(result['score'], 3)), end="")
+                    print()
+                    self.print_element(result, -1)
+                    results_shown += 1
+        else:
+            print(Style.BRIGHT + Fore.MAGENTA + "\tNo result found")
+
+    def print_element(self, element, j):
+        if not self.user_score:
+            print()
+        if element["pubtype"] in Parsing.publications:
+            if j >= 0:
+                print(Style.BRIGHT + Fore.MAGENTA + "\n\t\tPUBLICATION #" + str(j + 1))
+            else:
+                print(Style.BRIGHT + Fore.MAGENTA + "\n\t\tPUBLICATION")
+        elif element["pubtype"] in Parsing.venues or element["pubtype"] == "journal":
+            print(Style.BRIGHT + Fore.MAGENTA + "\n\t\tVENUE")
+
+        print(Style.BRIGHT + Fore.BLACK + "\t\t\tTitle: " + Style.RESET_ALL + str(element["title"]), end="")
+        if not str(element["title"]).endswith("\n"):
+            print()
+        if element['author']:
+            print(Style.BRIGHT + Fore.BLACK + "\t\t\tAuthors: ", end="")
+            authors = element["author"].split("\n")
+            print(*(author for author in authors if author != ""), sep=", ", end="\n")
+        if element["year"] != '':
+            print(Style.BRIGHT + Fore.BLACK + "\t\t\tYear: " + Style.RESET_ALL + element['year'], end="")
+        if element["pubtype"] in Parsing.publications:
+            if element['journal'] != '' and element['volume'] != '':
+                print(Style.BRIGHT + Fore.BLACK + "\t\t\tJournal: " + Style.RESET_ALL + element['journal'], end="")
+                print(Style.BRIGHT + Fore.BLACK + "\t\t\tVolume: " + Style.RESET_ALL + element['volume'], end="")
+        if "publisher" in element and element["publisher"] != "":
+            print(Style.BRIGHT + Fore.BLACK + "\t\t\tPublisher: " + Style.RESET_ALL + element['publisher'], end="")
+        print(Style.BRIGHT + Fore.BLACK + "\t\t\tType: " + Style.RESET_ALL + element['pubtype'])
+
+# TODO: commentare il codice
+# TODO: pulire il codice
 
 # article.title:"An Evaluation of Object-Oriented" venue.title:GTE
 """
