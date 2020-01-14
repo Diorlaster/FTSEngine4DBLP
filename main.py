@@ -2,37 +2,7 @@ from colorama import init
 from colorama import Fore, Back, Style
 from XML_Operations import Indexing
 from Search_Operations import Searching
-
-def faqs():
-    while True:
-        print(Back.BLUE+Fore.BLACK+" MAIN MENU > FAQ ")
-        print(Style.BRIGHT + Fore.BLUE + "\n\tWhat would you like to know?")
-        print(Fore.BLUE+"\t\t1 > About FTSE-4-DBLP")
-        print(Fore.BLUE+"\t\t2 > How research works")
-        print(Fore.BLUE+"\t\t3 > Differences between ranking models")
-        print(Fore.BLUE+"\t\t4 > About warnings")
-        print(Fore.BLUE+"\t\t5 > Back to main menu")
-        print()
-        user_command = input(Fore.YELLOW + ">>> ")
-        print()
-
-        if user_command == '1':
-            print(Fore.RED+"Work in progress...")
-            print()
-        elif user_command == '2':
-            print(Fore.RED+"Work in progress...")
-            print()
-        elif user_command == '3':
-            print(Fore.RED+"Work in progress...")
-            print()
-        elif user_command == '4':
-            print(Fore.RED+"Work in progress...")
-            print()
-        elif user_command == '5':
-            break
-        else:
-            print(Fore.RED+"Invalid option...please, try again!")
-    return
+import FAQ
 
 if __name__ == "__main__":
 
@@ -118,7 +88,7 @@ if __name__ == "__main__":
             else:
                 print(Style.BRIGHT + Fore.BLUE + "Scores won't be displayed!\n")
         elif user_command == '6':
-            faqs()
+            FAQ.faqs_menu()
         elif user_command == '7':
             print(Style.BRIGHT+Fore.BLUE+"Come back soon!")
             print()

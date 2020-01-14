@@ -1,0 +1,89 @@
+article.title:"An Evaluation of Object-Oriented" venue.title:GTE
+
+article.title:"An Evaluation of Object-Oriented" venue.title:GTE article.title:"the Incremental Migration"
+
+"performance evaluation of object" venue.title:"ACM SIGSOFT"
+
+"ware Engineering Notes" "performance evaluation of object"
+
+inproceedings.title:"Database Systems 2.0" inproceedings.title:"Structured Data Meets News" venue.title:"Proceedings of the VLDB 2019 PhD Workshop" venue:VLDB
+
+
+
+
+
+-------------------------------
+
+FTSE-4-DBLP is a full-text search engine for DBLP developed in Python. It uses Sax to parse the dblp XML file and Whoosh to query, search and rank the elements.
+
+" The DBLP computer science bibliography provides open bibliographic information on major computer science journals and proceedings.
+Originally created at the University of Trier in 1993, DBLP is now operated and further developed by Schloss Dagstuhl. "
+
+Whoosh is a fast, pure Python programmer library for creating a search engine.
+
+Sax is an XML parser that operates element by element, line by line and emits events as it goes step by step through the file.
+
+-------------------------------
+
+Research in FTSE-4-DBLP follow some simple rules.
+
+You can search:
+	single words with a keyword-query which is a alphanumeric character sequence delimited by spaces
+	phrases with a phrase-query which is a sequence of keywords delimited by " ( double quote )
+
+You can search a word or a phrase among specific elements and/or fields as follow:
+
+	[element].[field]:[keyword/phrase]
+
+	You don't have to specify both! For example, you can look for the keyword information among the field title of every element by typing title:information
+	or for the phrase "information retrieval" among a specific element but among every field by typing article."information retrieval" or article:"information retrieval".
+	As you can see, when you are not specifying a field you can both use . or : to specify an element because FTSE-4-DBLP is smart enough to understand when you do specify an element or a field and when you don't.
+
+	But what do we mean with elements and fields?
+
+	DBLP provides two big type of data: publications and venues.
+	Each one has elements ( such as article for publications and book for venues ) each of which has fields but you can only specify some of them!
+
+	As publication elements, you can use article, incollection, inproceedings, phdthesis, mastersthesis and a special one: publication which is used to specify that you
+	are looking for a publication with a generic element.
+
+	As venue elements you can only use the special element venue to specify that you are looking for a venue.
+
+	As publication fields, you can use author, title and year.
+
+	As venues fields, you can use title and publisher.
+
+	If an element is not specified, FTSE-4-DBLP will search among every element.
+
+	If a field is not specified, FTSE-4-DBLP will search among every field of every element ( if element is not specified )
+
+	So, in short:
+
+		f-t-s : ([field:] search-pattern)+
+		search-pattern : keyword | “phase”
+		field: pub-search | venue-search
+		pub-search : pub-ele[.pub-field]
+		pub-ele: publication | article | incollection | inproc | phThesis | masterThesis
+		pub-field: author | title | year
+		venue-search: venue[.venue-field]
+		venue-field: title | publisher
+
+We did our best to prevent failures or unexpected behavior so FTSE-4-DBLP will show some warnings ( if enabled ) when you don't follow these rules but, as everything, is not perfect so you may get unwanted or unoptimized results if you type something strange.
+
+--------------------------------------------------------------
+
+FTSE-4-DBLP provides two different ranking models for your results: Okapi BM25F and Frequency.
+
+Okapi BM25F is a ranking function used by search engines to estimate the relevance of documents to a given search query. It is based on the probabilistic retrieval framework developed in the 1970s and 1980s by Stephen E. Robertson, Karen Spärck Jones, and others.
+
+Frequency ranking estimate the relevance of documents to a given search query by counting its occurrences: the higher the number, the higher the score.
+
+To combine publications and venues score when both are in the results set, FTSE-4-DBLP use the Threshold Algorithm. More infos can be found in the following paper: R. Fagin, A. Lotem and M. Naor, Optimal aggregation algorithms for middleware, Journal of Computer and System Sciences 66, p. 614-656, 2003
+
+---------------------------------------------------------
+
+We did our best to prevent and handle failures or unexpected behavior but FTSE-4-DBLP will show some warnings ( if enabled ) in case something is wrong with the query syntax.
+
+You can choose to show possible warnings or not by switching the option in the menu despite is highly recommended not to change it.
+
+Some critical warnings cannot be turned off in order to increase the software's robustness.
