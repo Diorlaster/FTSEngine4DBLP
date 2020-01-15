@@ -2,7 +2,11 @@ from colorama import Fore, Style, Back
 
 
 def faqs_menu():
+    """For a cleaner code, we preferred to move FAQS text from main file to another one"""
+
     while True:
+        """FAQ's menu"""
+
         print(Back.BLUE + Fore.BLACK + " MAIN MENU > FAQ ")
         print(Style.BRIGHT + Fore.BLUE + "\n\tWhat would you like to know?")
         print(Fore.BLUE + "\t\t1 > About FTSE-4-DBLP")
@@ -30,11 +34,12 @@ def faqs_menu():
 
 def about_ftse4dblp():
     print(Back.BLUE + Fore.BLACK + " MAIN MENU > FAQ > ABOUT FTSE-4-DBLP ")
-    print("\n\t"+Fore.BLUE +"FTSE-4-DBLP"+ Fore.RESET+" is a full-text search engine for "+Fore.YELLOW+"DBLP"+Fore.RESET+ " developed in Python. It uses "
+    print("\n\t"+Fore.BLUE +"FTSE-4-DBLP"+ Fore.RESET+" is a full-text search engine for "+Fore.YELLOW+"DBLP"+Fore.RESET+
+          " developed in Python by "+Fore.RED+"Angelo Di Franco"+Fore.RESET+" and "+Fore.RED+"Francesco Franco"+Fore.RESET+".\n\tIt uses "
         + Fore.YELLOW+"Sax" + Fore.RESET + " to parse the DBLP XML file and "+Fore.YELLOW+"Whoosh"+Fore.RESET+" to query, search and rank the elements.\n")
     print( "\t" + "The "+Fore.YELLOW+"DBLP"+Fore.RESET+" computer science bibliography provides open bibliographic information on major computer science journals and proceedings."
-           "\n\t\tOriginally created at the University of Trier in 1993, DBLP is now operated and further developed by Schloss Dagstuhl. ")
-    print( "\t" + Fore.YELLOW+"Sax" + Fore.RESET + " is an XML parser that operates element by element, line by line and emits events as it goes step by step through the file.")
+           "\n\tOriginally created at the University of Trier in 1993, DBLP is now operated and further developed by Schloss Dagstuhl. ")
+    print( "\n\t" + Fore.YELLOW+"Sax" + Fore.RESET + " is an XML parser that operates element by element, line by line and emits events as it goes step by step through the file.")
     print( "\t" + Fore.YELLOW+"Whoosh"+ Fore.RESET +" is a fast, pure Python programmer library for creating a search engine.")
     print()
 
@@ -73,15 +78,15 @@ def research_infos():
 
 
 def ranking_models_differences():
-    print(Back.BLUE + Fore.BLACK + " MAIN MENU > FAQ > DIFFERENCES BETWEEN RANKING MODELS \n")
-    print("\t"+Fore.BLUE+"FTSE-4-DBLP"+Fore.RESET+" provides two different ranking models for your results: "+Fore.YELLOW+"Okapi BM25F"+Fore.RESET+" and "+Fore.YELLOW+"Frequency"+Fore.RESET+".")
-    print("\n\t\t"+Fore.YELLOW+"Okapi BM25F"+Fore.RESET+" is a ranking function used by search engines to estimate the relevance of documents to a given search query. "
-          "It is based on the probabilistic retrieval framework developed in the 1970s and 1980s by Stephen E. Robertson, Karen Spärck Jones, and others.")
+    print(Back.BLUE + Fore.BLACK + " MAIN MENU > FAQ > DIFFERENCES BETWEEN RANKING MODELS ")
+    print("\n\t"+Fore.BLUE+"FTSE-4-DBLP"+Fore.RESET+" provides two different ranking models for your results: "+Fore.YELLOW+"Okapi BM25F"+Fore.RESET+" and "+Fore.YELLOW+"Frequency"+Fore.RESET+".")
+    print("\n\t\t"+Fore.YELLOW+"Okapi BM25F"+Fore.RESET+" is a modified version of Okapi BM25. It has an extension to multiple weighted fields. "
+        "Unlike BM25, the model is applicable to structured documents consisting of multiple fields. The model "
+        "preserves term frequency non-linearity and removes the independence assumption between same term occurrences.")
     print("\n\t\t"+Fore.YELLOW+"Frequency"+Fore.RESET+" ranking estimate the relevance of documents to a given search query by counting its occurrences: the higher the number, the higher the score.")
     print("\n\tTo combine publications and venues score when both are in the results set, FTSE-4-DBLP use the "+Fore.YELLOW+"Threshold Algorithm"+Fore.RESET+". More infos can be found in the following paper:")
     print("\n\t\t"+Fore.GREEN+"R. Fagin, A. Lotem and M. Naor, Optimal aggregation algorithms for middleware, Journal of Computer and System Sciences 66, p. 614-656, 2003")
     print()
-
 
 def about_warnings():
     print(Back.BLUE + Fore.BLACK + " MAIN MENU > FAQ > ABOUT WARNINGS \n")

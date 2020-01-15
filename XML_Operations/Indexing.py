@@ -16,6 +16,8 @@ from whoosh.index import create_in
 journals = []
 
 class Index:
+    """Indexes support class. Here We check, load and create indexes"""
+
     indexes_path = 'Indexes/'
     publications_index_path = 'Indexes/PublicationsIndex'
     venues_index_path = 'Indexes/VenuesIndex'
@@ -25,7 +27,10 @@ class Index:
     sentinel = False
 
     def load_check_indexes(self):
+        """Check if indexes exists and load them. If not, launch parsing and indexing process"""
+
         try:
+            """Try to load indexes... """
             self.publications_index = index.open_dir(self.publications_index_path)
             self.venues_index = index.open_dir(self.venues_index_path)
             publications_number = str(self.publications_index.doc_count())
@@ -35,6 +40,7 @@ class Index:
             print(Fore.BLUE+"> "+Fore.WHITE + venues_number + Fore.BLUE + " venues")
             print()
         except:
+            """... but if indexes cannot be loaded, ask for XML file path and create them"""
             if not self.sentinel:
                 print(Fore.RED + "Indexes not found... ")
                 self.sentinel = True
@@ -65,6 +71,8 @@ class Index:
                 print(Fore.BLUE + 'Indexes creation completed in ', round((end_time - start_time) / 60),
                       Fore.BLUE + ' minutes!')
             except:
+                """Interrupting indexing process can create damaged indexes and unpredictable behavior so we prefer to 
+                kill the program and start all over again, deleting damaged indexes's directory"""
                 print( Fore.RED + "Something went wrong during the indexing process... FTSE4DBLP will shut down to prevent damaged indexes")
                 sys.exit(0)
 
@@ -72,16 +80,19 @@ class Index:
 
 
     def xml_indexing(self, parser, handler, schema, path, journal ):
+        """Indexes support class. Here We check, load and create indexes"""
+
+        """Set resources in order to minimize the time required by parsing and indexing process"""
         pe_number = round(cpu_count())
         memory_percetage = 90 / 100
         available_memory = virtual_memory().available / 1024 ** 2
         mb_limit = round(available_memory / pe_number * memory_percetage)
-
         d = {'pe_number': pe_number, 'mb_limit': mb_limit, 'multisegment': True}
 
         writer = create_in(path, schema).writer(**d)
         parser.setContentHandler(handler(writer))
 
+        """Create journals's venues from the ones found during the parsing process"""
         parser.parse(self.xml_path)
         if journal:
             for j in journals:
@@ -100,6 +111,8 @@ class Index:
 
 
     def get_publications_schema(self):
+        """publications indexing schema"""
+
         publications_schema = Schema(
             pubtype=TEXT(stored=True),
             key=STORED,
@@ -115,6 +128,8 @@ class Index:
         return publications_schema
 
     def get_venues_schema(self):
+        """venues indexing schema"""
+
         venues_schema = Schema(
             pubtype=STORED,
             key=STORED,

@@ -5,6 +5,7 @@ from Search_Operations import Searching
 import FAQ
 
 if __name__ == "__main__":
+    """The program starts its execution here"""
 
     user_command = None;
     user_output_results = 3
@@ -14,6 +15,7 @@ if __name__ == "__main__":
     user_warnings = True
     user_score = True
 
+    """Main title for the menu"""
     init(autoreset=True)
     print()
     print("     " + Back.BLUE + Fore.LIGHTWHITE_EX + "                                                                                               ")
@@ -31,6 +33,8 @@ if __name__ == "__main__":
     indexes.load_check_indexes()
 
     while True:
+        """Main menu for the program"""
+
         print(Back.BLUE+Fore.BLACK+" MAIN MENU ")
         print(Style.BRIGHT+Fore.BLUE+"\nWhat would you like to do?")
         print(Fore.BLUE+"\t1 > Search")

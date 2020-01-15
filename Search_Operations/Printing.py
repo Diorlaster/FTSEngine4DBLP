@@ -3,13 +3,16 @@ from colorama import Fore, Style, Back
 from XML_Operations import Parsing
 
 def print_threshold_results(threshold_results, user_output_results, user_score):
+    """Print results that have been selected via the Threshold Algorithm"""
+
     if not threshold_results:
         print(Style.BRIGHT + Fore.MAGENTA + "\tNo result found")
         return
 
-    # rimozione duplicati
+    """Removing duplicates"""
     threshold_results = [i for n, i in enumerate(threshold_results) if i not in threshold_results[n + 1:]]
 
+    """Check user's output preferences"""
     if len(threshold_results) < user_output_results:
         user_output_results = len(threshold_results)
 
@@ -19,6 +22,8 @@ def print_threshold_results(threshold_results, user_output_results, user_score):
         venue_i = threshold_results[0]["v"]
         pub_i = threshold_results[0]["p"]
         if venue_i != None:
+            """If we have a venue as relevant result, we decided to print under the same result every relevant related 
+            publication. Related means that we have a cross-reference between a venue and a publication."""
             punti = venue_i["score"]
             for j in range(len(threshold_results)):
                 pub_j = threshold_results[j]["p"]
@@ -38,6 +43,7 @@ def print_threshold_results(threshold_results, user_output_results, user_score):
                     printed_counter = printed_counter + 1
             threshold_results[:] = [d for d in threshold_results if d.get('v') != venue_i]
         elif pub_i != None:
+            """Otherwise, we print the single publication result"""
             print("\n\t" + Back.MAGENTA + Fore.BLACK + "\tResult #" + str(i + 1) + "\t", end="\t")
             if user_score:
                 print(Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "Total Score: " + Style.BRIGHT + Fore.BLACK + str(
@@ -49,6 +55,9 @@ def print_threshold_results(threshold_results, user_output_results, user_score):
 
 
 def print_results(results_set, user_output_results, user_score):
+    """Print results in case the Threshold Algorithm has not been used which means that publications OR venues results
+    set was empty. In this case we print results individually."""
+
     if len(results_set) > 0:
         results_shown = 0
         print()
@@ -67,6 +76,9 @@ def print_results(results_set, user_output_results, user_score):
 
 
 def print_element(element, j, user_score):
+    """For a cleaner code, we choose to create a generic function to print a single publication or venue.
+    Some fields may be empty or not exists so we check before print them."""
+
     if not user_score:
         print()
     if element["pubtype"] in Parsing.publications:

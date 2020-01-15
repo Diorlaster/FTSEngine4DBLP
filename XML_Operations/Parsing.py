@@ -7,13 +7,13 @@ venues = ['book', 'proceedings']
 
 
 class PublicationsHandler(xml.sax.ContentHandler):
-    """Class for handle parsing events and adding documents to the publication index"""
+    """Handle publications's parsing"""
 
     saxWriter = None
     isPublication = False
 
     # per conservare l'elemento che si sta analizzando
-    __onGoingElement = None
+    current_field = None
 
     # lista degli attributi di una publication che si è deciso di mostrare
     key = ''
@@ -32,7 +32,7 @@ class PublicationsHandler(xml.sax.ContentHandler):
         self.__reset_attributes()
 
     def __reset_attributes(self):
-        """A function for resetting the class attributes"""
+        """Reset class attributes"""
 
         self.isPublication = False
         self.key = ''
@@ -47,13 +47,13 @@ class PublicationsHandler(xml.sax.ContentHandler):
         self.url = ''
 
     def startDocument(self):
-        """Called when the XML Parser starts reading the file"""
+        """File is being read by XML parser, searching for publications"""
         print(Fore.GREEN + "Indexing pubblications...", end="")
 
     def startElement(self, tag, attributes):
-        """Called when a publication is parsed"""
+        """Publication has been found and is being parsed so we store its tag and its key"""
 
-        self.__onGoingElement = tag
+        self.current_field = tag
         for publicationTag in publications:
             if tag == publicationTag:
                 self.isPublication = True
@@ -61,30 +61,32 @@ class PublicationsHandler(xml.sax.ContentHandler):
                 self.key = str(attributes['key'])
 
     def characters(self, content):
-        """Called to assign the attributes of a publication document"""
+        """Check which field of publication is being read and then stored"""
 
         if self.isPublication:
-            if self.__onGoingElement == "crossref":
+            if self.current_field == "crossref":
                 self.crossref += str(content).split('\n')[0]
-            elif self.__onGoingElement == 'author':
+            elif self.current_field == 'author':
                 self.author += str(content)
-            elif self.__onGoingElement == "title":
+            elif self.current_field == "title":
                 self.title += str(content)
-            elif self.__onGoingElement == "year":
+            elif self.current_field == "year":
                 self.year += str(content)
-            elif self.__onGoingElement == "journal":
+            elif self.current_field == "journal":
                 self.journal += str(content)
-            elif self.__onGoingElement == "volume":
+            elif self.current_field == "volume":
                 self.volume += str(content)
-            elif self.__onGoingElement == "pages":
+            elif self.current_field == "pages":
                 self.pages += str(content)
-            elif self.__onGoingElement == "url":
+            elif self.current_field == "url":
                 self.url += str(content)
 
     def endElement(self, tag):
-        """Called when the parsing of the publication ends"""
+        """Publication has been fully read so we can store it"""
 
         if self.tag == tag:
+            """ if publication has a journal field its crossref is probably null so we set journal value as crossref.
+            Journals is added to a list because it will become a new venue with journal field element as title """
             if self.journal != '' and self.crossref == '':
                 if self.journal != '\n' and self.journal.split('\n')[0] not in Indexing.journals:
                     Indexing.journals.append(self.journal.split('\n')[0])
@@ -114,18 +116,18 @@ class PublicationsHandler(xml.sax.ContentHandler):
             self.__reset_attributes()
 
     def endDocument(self):
-        """Called when the parsing is completed"""
+        """File has been fully read"""
         print(Fore.GREEN + "OK!")
 
 
 class VenuesHandler(xml.sax.ContentHandler):
-    """Class for handle parsing events and adding documents to the venue index"""
+    """Handle venues's parsing"""
 
     saxWriter = None
     isVenue = False
 
     # per conservare l'elemento che si sta analizzando
-    __onGoingElement = None
+    current_field = None
 
     # lista degli attributi di una venue che si è deciso di mostrare
     key = ''
@@ -143,7 +145,7 @@ class VenuesHandler(xml.sax.ContentHandler):
         self.__reset_attributes()
 
     def __reset_attributes(self):
-        """A function for resetting the class attributes."""
+        """Reset class attributes"""
 
         self.isVenue = False
         self.key = ''
@@ -157,13 +159,13 @@ class VenuesHandler(xml.sax.ContentHandler):
         self.parent = False
 
     def startDocument(self):
-        """Called when the XML Parser starts reading the file"""
+        """File is being read by XML parser, searching for venues"""
         print(Fore.GREEN + "Indexing venues...", end="")
 
     def startElement(self, tag, attributes):
         """Called when a venue is parsed"""
 
-        self.__onGoingElement = tag
+        self.current_field = tag
         for venueTag in venues:
             if tag == venueTag:
                 self.isVenue = True
@@ -171,24 +173,24 @@ class VenuesHandler(xml.sax.ContentHandler):
                 self.key = str(attributes['key'])
 
     def characters(self, content):
-        """Called to assign the attributes of a venue document"""
+        """Check which field of venues is being read and then stored"""
 
         if self.isVenue:
-            if self.__onGoingElement == "author":
+            if self.current_field == "author":
                 self.author += str(content)
-            elif self.__onGoingElement == "title":
+            elif self.current_field == "title":
                 self.title += str(content)
-            elif self.__onGoingElement == "year":
+            elif self.current_field == "year":
                 self.year += str(content)
-            elif self.__onGoingElement == 'journal':
+            elif self.current_field == 'journal':
                 self.journal += content
-            elif self.__onGoingElement == "publisher":
+            elif self.current_field == "publisher":
                 self.publisher += str(content)
-            elif self.__onGoingElement == "url":
+            elif self.current_field == "url":
                 self.url += str(content)
 
     def endElement(self, tag):
-        """Called when the parsing of the venue ends"""
+        """Venue has been fully read so we can store it"""
 
         if self.tag == tag:
             self.saxWriter.add_document(pubtype=self.tag,
@@ -203,5 +205,5 @@ class VenuesHandler(xml.sax.ContentHandler):
             self.__reset_attributes()
 
     def endDocument(self):
-        """Called when the parsing is completed"""
+        """File has been fully read"""
         print(Fore.GREEN + "OK!")
