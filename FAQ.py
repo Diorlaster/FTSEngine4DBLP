@@ -80,8 +80,9 @@ def research_infos():
 def ranking_models_differences():
     print(Back.BLUE + Fore.BLACK + " MAIN MENU > FAQ > DIFFERENCES BETWEEN RANKING MODELS ")
     print("\n\t"+Fore.BLUE+"FTSE-4-DBLP"+Fore.RESET+" provides two different ranking models for your results: "+Fore.YELLOW+"Okapi BM25F"+Fore.RESET+" and "+Fore.YELLOW+"Frequency"+Fore.RESET+".")
-    print("\n\t\t"+Fore.YELLOW+"Okapi BM25F"+Fore.RESET+" is a modified version of Okapi BM25. It has an extension to multiple weighted fields. "
-        "Unlike BM25, the model is applicable to structured documents consisting of multiple fields. The model "
+    print("\n\t\t"+Fore.YELLOW+"Okapi BM25F"+Fore.RESET+" is a modified version of Okapi BM25 and the default Whoosh ranking model."
+        " It has an extension to multiple weighted fields and, "
+        "unlike BM25, the model is applicable to structured documents consisting of multiple fields. The model "
         "preserves term frequency non-linearity and removes the independence assumption between same term occurrences.")
     print("\n\t\t"+Fore.YELLOW+"Frequency"+Fore.RESET+" ranking estimate the relevance of documents to a given search query by counting its occurrences: the higher the number, the higher the score.")
     print("\n\tTo combine publications and venues score when both are in the results set, FTSE-4-DBLP use the "+Fore.YELLOW+"Threshold Algorithm"+Fore.RESET+". More infos can be found in the following paper:")

@@ -125,8 +125,8 @@ We added some hints inside the FAQ menu where you can find infos about research,
 
 FTSE-4-DBLP provides two different ranking models for your results: Okapi BM25F and Frequency.
 
-Okapi BM25F is a modified version of Okapi BM25. It has an extension to multiple weighted fields.
-Unlike BM25, the model is applicable to structured documents consisting of multiple fields. The model
+Okapi BM25F is a modified version of Okapi BM25 and the default Whoosh ranking model. 
+It has an extension to multiple weighted fields and, unlike BM25, is applicable to structured documents consisting of multiple fields. The model
 preserves term frequency non-linearity and removes the independence assumption between same term occurrences.
 
 Frequency ranking estimate the relevance of documents to a given search query by counting its occurrences: the higher 
