@@ -42,11 +42,11 @@ class Searcher:
         """We split user's text into individual queries"""
         user_splitted_query, user_continue = Querying.get_queries(user_query)
 
-        """If something went wrong during translation, the research is over and we return to the main menu"""
+        """If something went wrong during translation and user didn't want to continue the research is over and we return to the main menu"""
         if not user_continue:
             return
 
-        """Translate indivual queries into Whoosh's queries."""
+        """Translate individual queries into Whoosh's queries."""
         user_p_query, user_v_query, self.query_warnings = Querying.get_whoosh_queries(user_splitted_query);
 
         if self.user_warnings:

@@ -69,23 +69,23 @@ def get_whoosh_queries(user_splitted_query):
                     if str(query_analysis[0]).partition(".")[0].lower() == 'venue':
                         query_element = ('venue', True)
                     else:
-                        query_element = get_element(str(query_analysis[0]).partition(".")[0])
-                    query_field = get_field(str(query_analysis[0]).partition(".")[-1])
+                        query_element = get_element(str(query_analysis[0]).partition(".")[0].lower())
+                    query_field = get_field(str(query_analysis[0]).partition(".")[-1].lower())
                     query_text = query_analysis[-1]
                 else:
                     if str(query_analysis[0]).lower() == 'venue':
                         query_element = ('venue', True)
                     else:
-                        query_element = get_element(query_analysis[0])
-                    query_field = get_field(query_analysis[0])
+                        query_element = get_element(query_analysis[0].lower())
+                    query_field = get_field(query_analysis[0].lower())
                     query_text = query_analysis[-1]
             elif "." in query:
                 query_analysis = query.partition(".")
                 if str(query_analysis[0]).lower() == 'venue':
                     query_element = ('venue', True)
                 else:
-                    query_element = get_element(query_analysis[0])
-                query_field = get_field(query_analysis[-1])
+                    query_element = get_element(query_analysis[0].lower())
+                query_field = get_field(query_analysis[-1].lower())
                 if not query_field[1]:
                     query_text = query_analysis[-1]
 
