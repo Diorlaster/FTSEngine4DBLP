@@ -118,7 +118,7 @@ def get_whoosh_queries(user_splitted_query):
                     else:
                         warnings.append(
                             Fore.YELLOW + str(query_field[0]) + Fore.CYAN + " is not a valid field so "
-                                                                            " it will be ignored. " + Fore.YELLOW + query_text + Fore.CYAN + " will be searched among every " + Fore.YELLOW + "venue")
+                                                                            "it will be ignored. " + Fore.YELLOW + query_text + Fore.CYAN + " will be searched among every " + Fore.YELLOW + "venue")
                 venues_whoosh_query = venues_whoosh_query + query_text + " ) OR "
         else:
             if query_field[0] not in publications_fields and query_field[0] not in venues_fields and \

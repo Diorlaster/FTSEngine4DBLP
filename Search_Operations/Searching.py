@@ -141,7 +141,6 @@ class Searcher:
             """check if the current publication has a valid crossref to any venue from the venue's results set"""
             for v in venues:
                 if "crossref" in publications[i] and publications[i]["crossref"] != "" and publications[i]["crossref"] == v["key"]:
-                    # ho trovato una corrispondenza. Prendo lo score della venue, lo sommo allo score della pub i-esima
                     pub_to_ven.update({ "p":publications[i] ,  "v":v ,  "combined_score":publications[i]["score"]+v["score"]} )
                     venue_found = True
                     break
@@ -154,7 +153,6 @@ class Searcher:
             """check if the current venue has a valid crossref to any publication from the publications's results set"""
             for p in publications:
                 if "crossref" in p and p["crossref"] != "" and venues[i]["key"] == p["crossref"]:
-                    # ho trovato una corrispondenza. Prendo lo score della pub, lo sommo allo score della venue i-esima
                     ven_to_pub.update({ "p":p , "v":venues[i], "combined_score":p["score"]+venues[i]["score"]})
                     publication_found = True
                     break

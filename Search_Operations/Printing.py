@@ -24,21 +24,21 @@ def print_threshold_results(threshold_results, user_output_results, user_score):
         if venue_i != None:
             """If we have a venue as relevant result, we decided to print under the same result every relevant related 
             publication. Related means that we have a cross-reference between a venue and a publication."""
-            punti = venue_i["score"]
+            total_score = venue_i["score"]
             for j in range(len(threshold_results)):
                 pub_j = threshold_results[j]["p"]
                 if pub_j != None and "crossref" in pub_j and pub_j["crossref"] == venue_i["key"]:
-                    punti = punti + pub_j["score"]
+                    total_score = total_score + pub_j["score"]
             print("\n\t" + Back.MAGENTA + Fore.BLACK + "\tResult #" + str(i + 1) + "\t", end="\t")
             if user_score:
                 print(Style.BRIGHT + Fore.LIGHTMAGENTA_EX + "Total Score: " + Style.BRIGHT + Fore.BLACK + str(
-                    round(punti, 3)))
+                    round(total_score, 3)))
             print_element(venue_i, -1, user_score)
             printed_counter = 1
             for j in range(len(threshold_results)):
                 pub_j = threshold_results[j]["p"]
                 if pub_j != None and "crossref" in pub_j and pub_j["crossref"] == venue_i["key"]:
-                    punti = punti + pub_j["score"]
+                    total_score = total_score + pub_j["score"]
                     print_element(pub_j, printed_counter, user_score)
                     printed_counter = printed_counter + 1
             threshold_results[:] = [d for d in threshold_results if d.get('v') != venue_i]
