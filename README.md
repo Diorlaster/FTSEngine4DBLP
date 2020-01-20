@@ -142,7 +142,7 @@ More infos can be found in the following paper:
 
 FTSE-4-DBLP has been developed on PyCharm IDE, using Python 3.6 on a Windows 10 Home machine. 
 
-It has been tested on a Windows 10 Home and an Ubuntu 18.10 machine. 
+It has been tested on Windows 10 Home, Ubuntu 18.10 and macOS Mojave. 
 
 Parsing and indexing process required at most 62 minutes on mid-range performance machine. This value may value a lot 
 depending on the machine specs. 
