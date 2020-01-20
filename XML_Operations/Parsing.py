@@ -12,10 +12,8 @@ class PublicationsHandler(xml.sax.ContentHandler):
     saxWriter = None
     isPublication = False
 
-    # per conservare l'elemento che si sta analizzando
     current_field = None
 
-    # lista degli attributi di una publication che si è deciso di mostrare
     key = ''
     tag = ''
     crossref = ''
@@ -126,10 +124,8 @@ class VenuesHandler(xml.sax.ContentHandler):
     saxWriter = None
     isVenue = False
 
-    # per conservare l'elemento che si sta analizzando
     current_field = None
 
-    # lista degli attributi di una venue che si è deciso di mostrare
     key = ''
     tag = ''
     author = ''
@@ -138,7 +134,6 @@ class VenuesHandler(xml.sax.ContentHandler):
     journal = ''
     publisher = ''
     url = ''
-    parent = False
 
     def __init__(self, sax_writer):
         self.saxWriter = sax_writer
@@ -156,7 +151,6 @@ class VenuesHandler(xml.sax.ContentHandler):
         self.journal = ''
         self.publisher = ''
         self.url = ''
-        self.parent = False
 
     def startDocument(self):
         """File is being read by XML parser, searching for venues"""

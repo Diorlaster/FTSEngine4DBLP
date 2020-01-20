@@ -23,7 +23,7 @@ You can run the following command:
 
 When requirements have been installed successfully, run the following command from FTSE4DBLP main directory:
 
-    main.py
+    main.py 
     
 ### XML AND INDEXING 
     
